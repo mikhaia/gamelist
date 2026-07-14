@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\GameList;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class GameListTest extends TestCase
@@ -48,5 +50,52 @@ class GameListTest extends TestCase
         ]);
 
         $this->actingAs($other)->get(route('lists.edit', $list))->assertForbidden();
+    }
+
+    public function test_list_can_be_filtered_and_export_uses_same_status_filter(): void
+    {
+        $user = User::factory()->create(['login' => 'chrono']);
+        $list = $user->gameLists()->create([
+            'name' => 'Games', 'slug' => 'games', 'default_platform' => 'nintendo_switch', 'is_public' => true,
+        ]);
+        $list->games()->create([
+            'title' => 'Playing Game', 'normalized_title' => 'playing game', 'status' => 'playing', 'platform' => 'pc',
+        ]);
+        $list->games()->create([
+            'title' => 'Completed Game', 'normalized_title' => 'completed game', 'status' => 'completed', 'platform' => 'pc',
+        ]);
+
+        $query = ['status' => ['playing']];
+        $this->actingAs($user)->get(route('lists.show', ['gameList' => $list] + $query))
+            ->assertOk()->assertSee('Playing Game')->assertDontSee('Completed Game');
+        $this->get(route('public.lists.show', ['login' => 'chrono', 'slug' => 'games'] + $query))
+            ->assertOk()->assertSee('Playing Game')->assertDontSee('Completed Game');
+
+        $response = $this->actingAs($user)->get(route('lists.export', ['gameList' => $list] + $query));
+        $this->assertSame("- Playing Game\n", $response->streamedContent());
+    }
+
+    public function test_list_cover_is_optimized_and_replaced(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $list = $user->gameLists()->create([
+            'name' => 'Games', 'slug' => 'games', 'default_platform' => 'nintendo_switch',
+            'cover_path' => 'list-covers/old.webp',
+        ]);
+        Storage::disk('public')->put('list-covers/old.webp', 'old');
+
+        $this->actingAs($user)->put(route('lists.update', $list), [
+            'name' => 'Games',
+            'slug' => 'games',
+            'default_platform' => 'nintendo_switch',
+            'is_public' => '1',
+            'cover' => UploadedFile::fake()->image('list.jpg', 1800, 1200),
+        ])->assertRedirect(route('lists.show', $list));
+
+        $list->refresh();
+        Storage::disk('public')->assertMissing('list-covers/old.webp');
+        Storage::disk('public')->assertExists($list->cover_path);
+        $this->assertStringEndsWith('.webp', $list->cover_path);
     }
 }

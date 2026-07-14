@@ -28,6 +28,13 @@
                         <span class="hidden sm:inline">{{ __('app.nav.lists') }}</span>
                     </a>
                     <span class="hidden text-sm text-slate-400 md:inline">{{ '@'.auth()->user()->login }}</span>
+                    <a href="{{ route('settings.edit') }}" class="grid size-10 place-items-center overflow-hidden rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white" title="Настройки" aria-label="Настройки">
+                        @if (auth()->user()->avatar_url)
+                            <img src="{{ auth()->user()->avatar_url }}" alt="Аватар {{ auth()->user()->login }}" class="h-full w-full object-cover">
+                        @else
+                            <span class="material-symbols-outlined">person</span>
+                        @endif
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button class="icon-button" title="{{ __('app.nav.logout') }}" aria-label="{{ __('app.nav.logout') }}">

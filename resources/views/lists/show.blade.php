@@ -3,13 +3,18 @@
 @section('title', $gameList->name)
 
 @section('content')
-<div class="mb-7">
-    <a class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-white" href="{{ route('lists.index') }}"><span class="material-symbols-outlined">arrow_back</span> Все списки</a>
+<div class="relative mb-7 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-violet-950/45 to-cyan-950/30 p-5 shadow-2xl shadow-black/20 sm:p-8">
+    @if ($gameList->cover_url)
+        <img src="{{ $gameList->cover_url }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-90">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#080a14]/90 via-[#080a14]/55 to-[#080a14]/15"></div>
+    @endif
+    <div class="relative">
+    <a class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-400 hover:text-white" href="{{ route('lists.index') }}"><span class="material-symbols-outlined">arrow_back</span> Все списки</a>
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div class="min-w-0">
             <div class="mb-3 flex flex-wrap items-center gap-2">
                 <span class="status-chip"><span class="material-symbols-outlined text-sm">{{ $gameList->is_public ? 'public' : 'lock' }}</span>{{ $gameList->is_public ? 'Публичный список' : 'Личный список' }}</span>
-                <span class="status-chip">{{ $gameList->games->count() }} игр</span>
+                <span class="status-chip">{{ $selectedStatuses === [] ? $totalGames : $gameList->games->count().' из '.$totalGames }} игр</span>
             </div>
             <h1 class="page-title break-words">{{ $gameList->name }}</h1>
             @if ($gameList->description)<p class="muted mt-3 max-w-3xl">{{ $gameList->description }}</p>@endif
@@ -19,6 +24,7 @@
             <a href="{{ route('imports.create', $gameList) }}" class="button button-secondary"><span class="material-symbols-outlined">playlist_add</span> {{ __('app.actions.import') }}</a>
             <a href="{{ route('lists.edit', $gameList) }}" class="icon-button border border-white/10 bg-white/5" title="{{ __('app.actions.edit') }}"><span class="material-symbols-outlined">settings</span></a>
         </div>
+    </div>
     </div>
 </div>
 
@@ -43,6 +49,8 @@
         @endforeach
     </form>
 </div>
+
+@include('lists._filters', ['publicView' => false])
 
 @include('lists._games', ['readonly' => false])
 @endsection

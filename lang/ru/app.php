@@ -5,7 +5,7 @@ return [
     'tagline' => 'Твоя игровая история — в одном месте',
     'hours' => '{1} :count час|[2,4] :count часа|[5,*] :count часов',
     'nav' => [
-        'lists' => 'Мои списки', 'login' => 'Войти', 'register' => 'Регистрация', 'logout' => 'Выйти',
+        'lists' => 'Мои списки', 'login' => 'Войти', 'register' => 'Регистрация', 'logout' => 'Выйти', 'settings' => 'Настройки',
     ],
     'actions' => [
         'create_list' => 'Новый список', 'save' => 'Сохранить', 'cancel' => 'Отмена', 'edit' => 'Изменить',
@@ -26,6 +26,7 @@ return [
         'game_created' => 'Игра добавлена.', 'game_updated' => 'Игра обновлена.',
         'game_deleted' => 'Игра удалена.', 'status_updated' => 'Статус обновлён.',
         'imported' => 'Добавлено игр: :count.', 'copied' => 'Ссылка скопирована.',
+        'avatar_updated' => 'Аватар обновлён.', 'password_updated' => 'Пароль изменён.',
     ],
     'errors' => [
         'cover_download' => 'Не удалось скачать обложку. Попробуйте другой URL или загрузите файл.',

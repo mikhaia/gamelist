@@ -18,8 +18,7 @@ class CoverImageService
         string $directory = 'game-covers',
         int $maxWidth = 900,
         int $maxHeight = 1200,
-    ): string
-    {
+    ): string {
         return $this->storeBytes($file->get(), $oldPath, $directory, $maxWidth, $maxHeight);
     }
 
@@ -65,8 +64,7 @@ class CoverImageService
         string $directory,
         int $maxWidth,
         int $maxHeight,
-    ): string
-    {
+    ): string {
         if ($bytes === '' || strlen($bytes) > self::MAX_BYTES) {
             throw ValidationException::withMessages(['cover' => __('app.errors.cover_size')]);
         }

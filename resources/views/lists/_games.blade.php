@@ -2,12 +2,12 @@
 
 @if ($gameList->games->isEmpty())
     <div class="panel flex min-h-64 flex-col items-center justify-center text-center">
-        <span class="material-symbols-outlined text-6xl text-violet-400/40">videogame_asset_off</span>
-        <h2 class="mt-4 text-lg font-extrabold">Список пока пуст</h2>
-        <p class="muted mt-2">Игры появятся здесь после добавления или импорта.</p>
-        @unless ($readonly)
+        <span class="material-symbols-outlined text-6xl text-violet-400/40">{{ ($selectedStatuses ?? []) !== [] ? 'filter_alt_off' : 'videogame_asset_off' }}</span>
+        <h2 class="mt-4 text-lg font-extrabold">{{ ($selectedStatuses ?? []) !== [] ? 'По выбранным статусам игр нет' : 'Список пока пуст' }}</h2>
+        <p class="muted mt-2">{{ ($selectedStatuses ?? []) !== [] ? 'Измените фильтр, чтобы увидеть другие игры.' : 'Игры появятся здесь после добавления или импорта.' }}</p>
+        @if (!$readonly && ($selectedStatuses ?? []) === [])
             <a href="{{ route('games.create', $gameList) }}" class="button button-primary mt-5"><span class="material-symbols-outlined">add</span> {{ __('app.actions.add_game') }}</a>
-        @endunless
+        @endif
     </div>
 @elseif ($gameList->display_mode === 'compact')
     <div class="glass overflow-hidden rounded-3xl">
@@ -25,6 +25,8 @@
                     <div class="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
                         <span>{{ $game->platform->label() }}</span>
                         @if ($game->main_story_minutes)<span>· {{ $game->formattedTime($game->main_story_minutes) }}</span>@endif
+                        @if ($game->started_at)<span>· Начал {{ $game->started_at->format('d.m.Y') }}</span>@endif
+                        @if ($game->completed_at)<span>· Закончил {{ $game->completed_at->format('d.m.Y') }}</span>@endif
                     </div>
                 </div>
                 @if ($readonly)
@@ -61,6 +63,12 @@
                     <p class="mt-2 truncate text-[11px] font-semibold text-slate-500">{{ $game->platform->label() }}</p>
                     @if ($game->main_story_minutes)
                         <p class="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400"><span class="material-symbols-outlined text-sm">schedule</span>{{ $game->formattedTime($game->main_story_minutes) }}</p>
+                    @endif
+                    @if ($game->started_at || $game->completed_at)
+                        <div class="mt-2 space-y-1 text-[10px] text-slate-500">
+                            @if ($game->started_at)<p class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">play_circle</span>{{ $game->started_at->format('d.m.Y') }}</p>@endif
+                            @if ($game->completed_at)<p class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">flag</span>{{ $game->completed_at->format('d.m.Y') }}</p>@endif
+                        </div>
                     @endif
                     @if ($readonly)
                         <span class="status-chip mt-3 max-w-full"><span class="material-symbols-outlined text-sm">{{ $game->status->icon() }}</span><span class="truncate">{{ $game->status->label() }}</span></span>

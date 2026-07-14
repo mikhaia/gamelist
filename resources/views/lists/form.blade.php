@@ -12,7 +12,7 @@
         <span class="eyebrow"><span class="material-symbols-outlined">playlist_add</span> Настройки списка</span>
         <h1 class="text-2xl font-extrabold">{{ $editing ? 'Редактировать список' : 'Новый список' }}</h1>
 
-        <form method="POST" action="{{ $editing ? route('lists.update', $gameList) : route('lists.store') }}" class="mt-7 space-y-5">
+        <form method="POST" enctype="multipart/form-data" action="{{ $editing ? route('lists.update', $gameList) : route('lists.store') }}" class="mt-7 space-y-5">
             @csrf
             @if ($editing) @method('PUT') @endif
             <div>
@@ -33,6 +33,23 @@
                 <label class="label" for="description">Описание</label>
                 <textarea class="field min-h-28 resize-y" id="description" name="description" placeholder="О чём этот список?">{{ old('description', $gameList->description) }}</textarea>
                 @error('description') <p class="field-error">{{ $message }}</p> @enderror
+            </div>
+            <div class="rounded-2xl border border-white/8 bg-black/15 p-4">
+                <div class="flex items-start gap-4">
+                    <div class="grid h-20 w-28 shrink-0 place-items-center overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-violet-950 to-cyan-950">
+                        @if ($gameList->cover_url)
+                            <img src="{{ $gameList->cover_url }}" alt="Текущая обложка списка" class="h-full w-full object-cover">
+                        @else
+                            <span class="material-symbols-outlined text-3xl text-white/20">image</span>
+                        @endif
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <label class="label" for="cover">Обложка списка</label>
+                        <p class="mt-1 text-xs leading-5 text-slate-600">Она станет затемнённым фоном карточки и страницы списка.</p>
+                    </div>
+                </div>
+                <input class="field mt-4 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-500/15 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-violet-300" id="cover" name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                @error('cover') <p class="field-error">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="label" for="default_platform">Платформа по умолчанию</label>

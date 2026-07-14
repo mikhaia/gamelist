@@ -31,4 +31,33 @@ class GameTest extends TestCase
         $this->assertStringEndsWith('.webp', $game->cover_path);
         Storage::disk('public')->assertExists($game->cover_path);
     }
+
+    public function test_game_dates_are_saved_and_replacement_deletes_old_cover(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $list = $user->gameLists()->create([
+            'name' => 'Switch', 'slug' => 'switch', 'default_platform' => 'nintendo_switch',
+        ]);
+        $game = $list->games()->create([
+            'title' => 'Hades II', 'normalized_title' => 'hades ii', 'status' => 'playing',
+            'platform' => 'nintendo_switch', 'cover_path' => 'game-covers/old.webp',
+        ]);
+        Storage::disk('public')->put('game-covers/old.webp', 'old');
+
+        $this->actingAs($user)->put(route('games.update', $game), [
+            'title' => 'Hades II',
+            'status' => 'completed',
+            'platform' => 'nintendo_switch',
+            'started_at' => '2026-07-01',
+            'completed_at' => '2026-07-14',
+            'cover' => UploadedFile::fake()->image('new-cover.jpg', 900, 1200),
+        ])->assertRedirect(route('lists.show', $list));
+
+        $game->refresh();
+        $this->assertSame('2026-07-01', $game->started_at->format('Y-m-d'));
+        $this->assertSame('2026-07-14', $game->completed_at->format('Y-m-d'));
+        Storage::disk('public')->assertMissing('game-covers/old.webp');
+        Storage::disk('public')->assertExists($game->cover_path);
+    }
 }

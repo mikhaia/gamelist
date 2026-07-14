@@ -95,6 +95,19 @@
                     </div>
                 </div>
 
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="label" for="started_at">Начал играть</label>
+                        <input class="field" id="started_at" name="started_at" type="date" value="{{ old('started_at', $game->started_at?->format('Y-m-d')) }}">
+                        @error('started_at') <p class="field-error">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="label" for="completed_at">Закончил играть</label>
+                        <input class="field" id="completed_at" name="completed_at" type="date" value="{{ old('completed_at', $game->completed_at?->format('Y-m-d')) }}">
+                        @error('completed_at') <p class="field-error">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
                 <div class="rounded-2xl border border-white/8 bg-black/15 p-4">
                     <p class="text-sm font-bold">Своя обложка</p>
                     <p class="mt-1 text-xs text-slate-600">Загрузка файла имеет приоритет над URL и результатом поиска.</p>
@@ -109,9 +122,6 @@
                             <input class="field file:mr-3 file:rounded-lg file:border-0 file:bg-violet-500/15 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-violet-300" id="cover" name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
                             @error('cover') <p class="field-error">{{ $message }}</p> @enderror
                         </div>
-                        @if ($editing && $game->cover_path)
-                            <label class="flex items-center gap-2 text-xs text-slate-500"><input type="checkbox" name="remove_cover" value="1" class="accent-red-500"> Удалить текущую обложку</label>
-                        @endif
                     </div>
                 </div>
 
