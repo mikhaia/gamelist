@@ -1,0 +1,60 @@
+@extends('layouts.app')
+
+@section('title', __('app.tagline'))
+
+@section('content')
+<section class="grid min-h-[68vh] items-center gap-10 py-8 lg:grid-cols-[1.08fr_.92fr] lg:py-16">
+    <div>
+        <span class="eyebrow"><span class="material-symbols-outlined">auto_awesome</span> Личная игровая библиотека</span>
+        <h1 class="max-w-3xl text-5xl font-extrabold leading-[1.04] tracking-[-.045em] text-white sm:text-6xl lg:text-7xl">
+            Все игры.<br><span class="bg-gradient-to-r from-violet-400 via-fuchsia-300 to-cyan-300 bg-clip-text text-transparent">Твой порядок.</span>
+        </h1>
+        <p class="mt-6 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">
+            Создавай тематические списки, отмечай прогресс и делись коллекциями. Обложки и время прохождения найдутся автоматически — а если нет, всё можно добавить вручную.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+            @auth
+                <a href="{{ route('lists.index') }}" class="button button-primary">
+                    <span class="material-symbols-outlined">view_list</span> {{ __('app.nav.lists') }}
+                </a>
+            @else
+                <a href="{{ route('register') }}" class="button button-primary">
+                    <span class="material-symbols-outlined">rocket_launch</span> Начать бесплатно
+                </a>
+                <a href="{{ route('login') }}" class="button button-secondary">{{ __('app.nav.login') }}</a>
+            @endauth
+        </div>
+        <div class="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-slate-500">
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-400">check_circle</span> Несколько списков</span>
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-400">check_circle</span> Импорт из Markdown</span>
+            <span class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-400">check_circle</span> Публичные ссылки</span>
+        </div>
+    </div>
+
+    <div class="relative mx-auto w-full max-w-xl">
+        <div class="absolute -inset-5 rounded-[2rem] bg-gradient-to-br from-violet-600/25 to-cyan-500/10 blur-2xl"></div>
+        <div class="glass relative overflow-hidden rounded-[2rem] p-4 sm:p-6">
+            <div class="mb-5 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-[.15em] text-violet-300">Nintendo Switch</p>
+                    <h2 class="mt-1 text-xl font-extrabold">Играю сейчас</h2>
+                </div>
+                <span class="rounded-full bg-white/7 px-3 py-1.5 text-xs text-slate-400">12 игр</span>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                @foreach ([['Metroid Prime 4', 'Играю', 'from-violet-900 to-cyan-900'], ['Hades II', 'Установлена', 'from-red-950 to-orange-900'], ['Zelda', 'Хочу сыграть', 'from-emerald-950 to-amber-900']] as $demo)
+                    <div class="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                        <div class="flex aspect-[3/4] items-center justify-center bg-gradient-to-br {{ $demo[2] }}">
+                            <span class="material-symbols-outlined text-4xl text-white/30">sports_esports</span>
+                        </div>
+                        <div class="p-3">
+                            <p class="truncate text-xs font-bold">{{ $demo[0] }}</p>
+                            <p class="mt-1 truncate text-[10px] text-slate-500">{{ $demo[1] }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</section>
+@endsection
