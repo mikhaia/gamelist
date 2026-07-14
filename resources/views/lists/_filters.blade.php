@@ -1,6 +1,6 @@
 @php($publicView = $publicView ?? false)
 @php($filterRoute = $publicView ? route('public.lists.show', [$gameList->user->login, $gameList->slug]) : route('lists.show', $gameList))
-@php($exportRoute = $publicView ? route('public.lists.export', [$gameList->user->login, $gameList->slug]) : route('lists.export', $gameList))
+@php($clipboardText = $gameList->games->map(fn ($game) => '- '.$game->title)->implode("\n"))
 
 <div class="mb-6 flex flex-col gap-3 rounded-2xl border border-white/8 bg-white/[.035] p-3 lg:flex-row lg:items-center lg:justify-between">
     <form method="GET" action="{{ $filterRoute }}" class="flex min-w-0 flex-wrap items-center gap-2">
@@ -15,7 +15,7 @@
             </label>
         @endforeach
     </form>
-    <a href="{{ $exportRoute }}?{{ http_build_query(['status' => $selectedStatuses]) }}" class="button button-secondary button-sm shrink-0">
-        <span class="material-symbols-outlined">download</span> Экспортировать {{ $gameList->games->count() }}
-    </a>
+    <button type="button" class="button button-secondary button-sm shrink-0" data-copy="{{ $clipboardText }}" data-copied="Список скопирован" @disabled($gameList->games->isEmpty())>
+        <span class="material-symbols-outlined">content_copy</span><span data-copy-label>Скопировать список ({{ $gameList->games->count() }})</span>
+    </button>
 </div>

@@ -5,7 +5,6 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameImportController;
 use App\Http\Controllers\GameListController;
-use App\Http\Controllers\GameListExportController;
 use App\Http\Controllers\PublicListController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -25,7 +24,6 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::resource('lists', GameListController::class)->parameters(['lists' => 'gameList']);
     Route::patch('/lists/{gameList}/display', [GameListController::class, 'display'])->name('lists.display');
-    Route::get('/lists/{gameList}/export', [GameListExportController::class, 'owner'])->name('lists.export');
 
     Route::get('/lists/{gameList}/games/create', [GameController::class, 'create'])->name('games.create');
     Route::post('/lists/{gameList}/games', [GameController::class, 'store'])->name('games.store');
@@ -42,10 +40,6 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/settings/avatar', [SettingsController::class, 'avatar'])->name('settings.avatar');
     Route::patch('/settings/password', [SettingsController::class, 'password'])->name('settings.password');
 });
-
-Route::get('/{login}/{slug}/export', [GameListExportController::class, 'public'])
-    ->where(['login' => '[A-Za-z0-9_]+', 'slug' => '[a-z0-9]+(?:-[a-z0-9]+)*'])
-    ->name('public.lists.export');
 
 Route::get('/{login}/{slug}', [PublicListController::class, 'show'])
     ->where(['login' => '[A-Za-z0-9_]+', 'slug' => '[a-z0-9]+(?:-[a-z0-9]+)*'])

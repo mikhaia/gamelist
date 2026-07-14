@@ -52,7 +52,7 @@ class GameListTest extends TestCase
         $this->actingAs($other)->get(route('lists.edit', $list))->assertForbidden();
     }
 
-    public function test_list_can_be_filtered_and_export_uses_same_status_filter(): void
+    public function test_list_can_be_filtered_and_clipboard_text_uses_same_status_filter(): void
     {
         $user = User::factory()->create(['login' => 'chrono']);
         $list = $user->gameLists()->create([
@@ -71,8 +71,10 @@ class GameListTest extends TestCase
         $this->get(route('public.lists.show', ['login' => 'chrono', 'slug' => 'games'] + $query))
             ->assertOk()->assertSee('Playing Game')->assertDontSee('Completed Game');
 
-        $response = $this->actingAs($user)->get(route('lists.export', ['gameList' => $list] + $query));
-        $this->assertSame("- Playing Game\n", $response->streamedContent());
+        $this->actingAs($user)->get(route('lists.show', ['gameList' => $list] + $query))
+            ->assertSee('Скопировать список (1)')
+            ->assertSee('- Playing Game')
+            ->assertDontSee('- Completed Game');
     }
 
     public function test_list_cover_is_optimized_and_replaced(): void
