@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class GameListController extends Controller
@@ -26,7 +27,11 @@ class GameListController extends Controller
 
     public function create(): View
     {
-        return view('lists.form', ['gameList' => new GameList, 'platforms' => Platform::cases()]);
+        return view('lists.form', [
+            'gameList' => new GameList,
+            'platforms' => Platform::cases(),
+            'statuses' => GameStatus::cases(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -47,7 +52,7 @@ class GameListController extends Controller
         $this->authorizeOwner($request, $gameList);
         $gameList->load('user');
         $totalGames = $gameList->games()->count();
-        $selectedStatuses = $this->statuses($request);
+        $selectedStatuses = $this->statuses($request, $gameList);
         $games = $gameList->games()
             ->when($selectedStatuses !== [], fn ($query) => $query->whereIn('status', $selectedStatuses))
             ->get();
@@ -55,7 +60,7 @@ class GameListController extends Controller
 
         return view('lists.show', [
             'gameList' => $gameList,
-            'statuses' => GameStatus::cases(),
+            'statuses' => $gameList->availableStatuses(),
             'selectedStatuses' => $selectedStatuses,
             'totalGames' => $totalGames,
         ]);
@@ -65,13 +70,17 @@ class GameListController extends Controller
     {
         $this->authorizeOwner($request, $gameList);
 
-        return view('lists.form', compact('gameList') + ['platforms' => Platform::cases()]);
+        return view('lists.form', compact('gameList') + [
+            'platforms' => Platform::cases(),
+            'statuses' => GameStatus::cases(),
+        ]);
     }
 
     public function update(Request $request, GameList $gameList): RedirectResponse
     {
         $this->authorizeOwner($request, $gameList);
         $validated = $this->validated($request, $gameList);
+        $this->ensureStatusesAreUnused($gameList, $validated['available_statuses']);
         $validated['slug'] = $this->makeSlug($request, $validated['name']);
         $validated['is_public'] = $request->boolean('is_public');
         if ($request->hasFile('cover')) {
@@ -105,7 +114,7 @@ class GameListController extends Controller
     public function display(Request $request, GameList $gameList): RedirectResponse
     {
         $this->authorizeOwner($request, $gameList);
-        $validated = $request->validate(['display_mode' => ['required', Rule::in(['cards', 'compact'])]]);
+        $validated = $request->validate(['display_mode' => ['required', Rule::in(['cards', 'compact', 'board'])]]);
         $gameList->update($validated);
 
         return back();
@@ -122,6 +131,8 @@ class GameListController extends Controller
             'description' => ['nullable', 'string', 'max:2000'],
             'cover' => ['nullable', 'image', 'max:8192'],
             'default_platform' => ['required', Rule::enum(Platform::class)],
+            'available_statuses' => ['required', 'array', 'min:1', 'max:5'],
+            'available_statuses.*' => ['required', 'distinct', Rule::enum(GameStatus::class)],
             'is_public' => ['nullable', 'boolean'],
         ]);
     }
@@ -148,10 +159,28 @@ class GameListController extends Controller
     }
 
     /** @return array<int, string> */
-    private function statuses(Request $request): array
+    private function statuses(Request $request, ?GameList $gameList = null): array
     {
-        $allowed = array_column(GameStatus::cases(), 'value');
+        $allowed = $gameList?->availableStatusValues() ?? array_column(GameStatus::cases(), 'value');
 
         return array_values(array_intersect((array) $request->query('status', []), $allowed));
+    }
+
+    /** @param array<int, string> $availableStatuses */
+    private function ensureStatusesAreUnused(GameList $gameList, array $availableStatuses): void
+    {
+        $usedDisabledStatuses = $gameList->games()
+            ->reorder()
+            ->whereNotIn('status', $availableStatuses)
+            ->distinct()
+            ->pluck('status')
+            ->map(fn (GameStatus|string $status): string => ($status instanceof GameStatus ? $status : GameStatus::from($status))->label())
+            ->implode(', ');
+
+        if ($usedDisabledStatuses !== '') {
+            throw ValidationException::withMessages([
+                'available_statuses' => __('app.errors.statuses_in_use', ['statuses' => $usedDisabledStatuses]),
+            ]);
+        }
     }
 }

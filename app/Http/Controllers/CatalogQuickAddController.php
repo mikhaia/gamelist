@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\GameStatus;
 use App\Models\CatalogGame;
 use App\Models\GameList;
 use App\Services\CoverImageService;
@@ -48,7 +47,7 @@ class CatalogQuickAddController extends Controller
             $game = $gameList->games()->create([
                 'title' => $catalogGame->title,
                 'normalized_title' => $catalogGame->normalized_title,
-                'status' => GameStatus::WantToPlay,
+                'status' => $gameList->defaultStatus(),
                 'platform' => $gameList->default_platform,
                 'hltb_id' => $catalogGame->hltb_id,
                 'cover_path' => $coverPath,

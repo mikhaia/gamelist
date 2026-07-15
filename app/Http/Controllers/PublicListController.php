@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\GameStatus;
 use App\Models\GameList;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,7 +18,7 @@ class PublicListController extends Controller
             ->firstOrFail();
 
         $totalGames = $gameList->games()->count();
-        $allowed = array_column(GameStatus::cases(), 'value');
+        $allowed = $gameList->availableStatusValues();
         $selectedStatuses = array_values(array_intersect((array) $request->query('status', []), $allowed));
         $games = $gameList->games()
             ->when($selectedStatuses !== [], fn ($query) => $query->whereIn('status', $selectedStatuses))
@@ -28,7 +27,7 @@ class PublicListController extends Controller
 
         return view('lists.public', [
             'gameList' => $gameList,
-            'statuses' => GameStatus::cases(),
+            'statuses' => $gameList->availableStatuses(),
             'selectedStatuses' => $selectedStatuses,
             'totalGames' => $totalGames,
         ]);

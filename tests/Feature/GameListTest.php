@@ -21,6 +21,7 @@ class GameListTest extends TestCase
             'name' => 'Switch Backlog',
             'slug' => 'switch-backlog',
             'default_platform' => 'nintendo_switch',
+            'available_statuses' => ['want_to_play', 'installed', 'playing', 'completed', 'dropped'],
             'is_public' => '1',
         ])->assertRedirect();
 
@@ -91,6 +92,7 @@ class GameListTest extends TestCase
             'name' => 'Games',
             'slug' => 'games',
             'default_platform' => 'nintendo_switch',
+            'available_statuses' => ['want_to_play', 'installed', 'playing', 'completed', 'dropped'],
             'is_public' => '1',
             'cover' => UploadedFile::fake()->image('list.jpg', 1800, 1200),
         ])->assertRedirect(route('lists.show', $list));

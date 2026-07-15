@@ -43,7 +43,7 @@
     @endif
     <form method="POST" action="{{ route('lists.display', $gameList) }}" class="flex rounded-xl border border-white/8 bg-black/20 p-1">
         @csrf @method('PATCH')
-        @foreach (['cards' => ['grid_view', __('app.actions.cards')], 'compact' => ['view_agenda', __('app.actions.compact')]] as $mode => $meta)
+        @foreach (['cards' => ['grid_view', __('app.actions.cards')], 'compact' => ['view_agenda', __('app.actions.compact')], 'board' => ['view_kanban', __('app.actions.board')]] as $mode => $meta)
             <button name="display_mode" value="{{ $mode }}" class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold {{ $gameList->display_mode === $mode ? 'bg-white/10 text-white' : 'text-slate-600 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-sm">{{ $meta[0] }}</span><span class="hidden sm:inline">{{ $meta[1] }}</span>
             </button>

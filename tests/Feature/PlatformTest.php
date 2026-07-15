@@ -26,6 +26,7 @@ class PlatformTest extends TestCase
                 'name' => 'Консоли',
                 'slug' => 'consoles',
                 'default_platform' => 'playstation',
+                'available_statuses' => ['want_to_play', 'installed', 'playing', 'completed', 'dropped'],
             ])
             ->assertRedirect();
 

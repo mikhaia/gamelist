@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\GameStatus;
 use App\Enums\Platform;
 use App\Models\Game;
 use App\Models\GameList;
@@ -29,7 +28,7 @@ class GameController extends Controller
         $this->authorizeList($request, $gameList);
 
         return $this->formView($request, $gameList, new Game([
-            'status' => GameStatus::WantToPlay,
+            'status' => $gameList->defaultStatus(),
             'platform' => $gameList->default_platform,
         ]));
     }
@@ -72,7 +71,9 @@ class GameController extends Controller
     public function status(Request $request, Game $game): RedirectResponse
     {
         $this->authorizeGame($request, $game);
-        $validated = $request->validate(['status' => ['required', Rule::enum(GameStatus::class)]]);
+        $validated = $request->validate([
+            'status' => ['required', Rule::in($game->gameList->availableStatusValues())],
+        ]);
         $game->update($validated);
 
         return back()->with('success', __('app.messages.status_updated'));
@@ -102,7 +103,7 @@ class GameController extends Controller
         return view('games.form', [
             'gameList' => $gameList,
             'game' => $game,
-            'statuses' => GameStatus::cases(),
+            'statuses' => $gameList->availableStatuses(),
             'platforms' => Platform::cases(),
             'results' => $results,
             'query' => $query,
@@ -115,7 +116,7 @@ class GameController extends Controller
             'title' => [
                 'required', 'string', 'max:255',
             ],
-            'status' => ['required', Rule::enum(GameStatus::class)],
+            'status' => ['required', Rule::in($gameList->availableStatusValues())],
             'platform' => ['required', Rule::enum(Platform::class)],
             'started_at' => ['nullable', 'date'],
             'completed_at' => ['nullable', 'date', 'after_or_equal:started_at'],

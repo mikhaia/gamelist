@@ -8,6 +8,7 @@ use App\Http\Controllers\CatalogSearchController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameImportController;
 use App\Http\Controllers\GameListController;
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PublicListController;
 use App\Http\Controllers\SettingsController;
@@ -24,6 +25,7 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::get('/history', HistoryController::class)->name('history.index');
     Route::get('/catalog/search/cached', [CatalogSearchController::class, 'cached'])->middleware('throttle:120,1')->name('catalog.cached');
     Route::get('/catalog/search', [CatalogSearchController::class, 'fresh'])->middleware('throttle:30,1')->name('catalog.search');
     Route::resource('lists', GameListController::class)->parameters(['lists' => 'gameList']);

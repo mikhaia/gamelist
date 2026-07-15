@@ -34,6 +34,7 @@ class HomePageTest extends TestCase
             ->assertSee('Featured Game 2')
             ->assertSee('Featured Game 3')
             ->assertSee('https://images.example.com/game-1.jpg', false)
+            ->assertSeeInOrder(['Хочу сыграть', 'Играю', 'Пройдена'])
             ->assertDontSee('Game Without Cover');
 
         $this->assertSame(3, substr_count($page->getContent(), 'data-featured-game'));
@@ -43,6 +44,17 @@ class HomePageTest extends TestCase
     {
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('Новая игра', false);
+            ->assertSee('Новая игра', false)
+            ->assertSeeInOrder(['Хочу сыграть', 'Играю', 'Пройдена']);
+    }
+
+    public function test_material_symbols_font_is_loaded_locally(): void
+    {
+        $this->assertFileExists(public_path('fonts/material-symbols-outlined.woff2'));
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('fonts/material-symbols-outlined.woff2', false)
+            ->assertDontSee('family=Material+Symbols+Outlined', false);
     }
 }

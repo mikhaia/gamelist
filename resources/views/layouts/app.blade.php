@@ -13,9 +13,19 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <style>
+        @font-face {
+            font-family: 'Material Symbols Outlined';
+            font-style: normal;
+            font-weight: 300 600;
+            font-display: block;
+            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}') format('woff2');
+        }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,0&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen text-slate-100 antialiased">
@@ -26,13 +36,17 @@
         <nav class="mx-auto flex h-17 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8" aria-label="Основная навигация">
             <a href="{{ route('home') }}" class="group flex items-center gap-2.5 font-extrabold tracking-tight">
                 <span class="brand-mark"><span class="material-symbols-outlined">stadia_controller</span></span>
-                <span class="text-lg">Game<span class="text-violet-400">List</span></span>
+                <span class="hidden text-lg sm:inline">Game<span class="text-violet-400">List</span></span>
             </a>
             <div class="flex items-center gap-2 sm:gap-3">
                 @auth
                     <a class="nav-link" href="{{ route('lists.index') }}">
                         <span class="material-symbols-outlined">view_list</span>
                         <span class="hidden sm:inline">{{ __('app.nav.lists') }}</span>
+                    </a>
+                    <a class="nav-link" href="{{ route('history.index') }}" title="{{ __('app.nav.history') }}">
+                        <span class="material-symbols-outlined">history</span>
+                        <span class="hidden sm:inline">{{ __('app.nav.history') }}</span>
                     </a>
                     <span class="hidden text-sm text-slate-400 md:inline">{{ '@'.auth()->user()->login }}</span>
                     <a href="{{ route('settings.edit') }}" class="grid size-10 place-items-center overflow-hidden rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white" title="Настройки" aria-label="Настройки">

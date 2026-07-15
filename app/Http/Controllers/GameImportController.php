@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\GameStatus;
 use App\Enums\Platform;
 use App\Models\GameList;
 use App\Services\GameImportParser;
@@ -59,7 +58,7 @@ class GameImportController extends Controller
         $validated = $request->validate([
             'titles' => ['required', 'array', 'max:100'],
             'titles.*' => ['required', 'string', 'max:255'],
-            'status' => ['required', Rule::enum(GameStatus::class)],
+            'status' => ['required', Rule::in($gameList->availableStatusValues())],
             'platform' => ['required', Rule::enum(Platform::class)],
         ]);
 
@@ -93,7 +92,7 @@ class GameImportController extends Controller
     {
         return [
             'gameList' => $gameList,
-            'statuses' => GameStatus::cases(),
+            'statuses' => $gameList->availableStatuses(),
             'platforms' => Platform::cases(),
             'items' => null,
             'gamesText' => '',

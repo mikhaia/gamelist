@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @php($editing = $gameList->exists)
+@php($availableStatusValues = (array) old('available_statuses', $gameList->availableStatusValues()))
 @section('title', $editing ? 'Редактировать список' : __('app.actions.create_list'))
 
 @section('content')
@@ -59,6 +60,30 @@
                     @endforeach
                 </select>
             </div>
+            <fieldset class="rounded-2xl border border-white/8 bg-black/15 p-4">
+                <legend class="px-1 text-sm font-bold text-slate-200">Доступные статусы</legend>
+                <p class="mt-1 text-xs leading-5 text-slate-500">Выберите статусы, которые можно назначать играм в этом списке. Они также станут колонками режима «Доска».</p>
+                <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                    @foreach ($statuses as $status)
+                        <label class="relative cursor-pointer">
+                            <input
+                                type="checkbox"
+                                name="available_statuses[]"
+                                value="{{ $status->value }}"
+                                class="peer sr-only"
+                                @checked(in_array($status->value, $availableStatusValues, true))
+                            >
+                            <span class="flex items-center gap-3 rounded-xl border border-white/8 bg-black/20 px-3 py-3 pr-10 text-sm font-semibold text-slate-500 transition hover:text-white peer-checked:border-violet-400/40 peer-checked:bg-violet-500/15 peer-checked:text-violet-200">
+                                <span class="material-symbols-outlined text-lg">{{ $status->icon() }}</span>
+                                {{ $status->label() }}
+                            </span>
+                            <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-base text-violet-300 opacity-0 transition peer-checked:opacity-100">check_circle</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('available_statuses') <p class="field-error mt-3">{{ $message }}</p> @enderror
+                @error('available_statuses.*') <p class="field-error mt-3">{{ $message }}</p> @enderror
+            </fieldset>
             <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/8 bg-black/15 p-4">
                 <input class="mt-1 size-4 accent-violet-500" type="checkbox" name="is_public" value="1" @checked(old('is_public', $gameList->exists ? $gameList->is_public : true))>
                 <span><strong class="block text-sm">Публичный список</strong><span class="mt-1 block text-xs leading-5 text-slate-500">Любой человек со ссылкой сможет посмотреть список, но не сможет его изменить.</span></span>

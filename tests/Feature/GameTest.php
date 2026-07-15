@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -59,5 +60,37 @@ class GameTest extends TestCase
         $this->assertSame('2026-07-14', $game->completed_at->format('Y-m-d'));
         Storage::disk('public')->assertMissing('game-covers/old.webp');
         Storage::disk('public')->assertExists($game->cover_path);
+    }
+
+    public function test_status_changes_fill_missing_started_and_completed_dates(): void
+    {
+        $user = User::factory()->create();
+        $list = $user->gameLists()->create([
+            'name' => 'Games', 'slug' => 'games', 'default_platform' => 'pc',
+        ]);
+        $game = $list->games()->create([
+            'title' => 'Control',
+            'normalized_title' => 'control',
+            'status' => 'want_to_play',
+            'platform' => 'pc',
+        ]);
+
+        $this->travelTo(Carbon::parse('2026-07-15 12:00:00'));
+        $this->actingAs($user)
+            ->patch(route('games.status', $game), ['status' => 'playing'])
+            ->assertRedirect();
+
+        $game->refresh();
+        $this->assertSame('2026-07-15', $game->started_at->format('Y-m-d'));
+        $this->assertNull($game->completed_at);
+
+        $this->travelTo(Carbon::parse('2026-07-20 12:00:00'));
+        $this->actingAs($user)
+            ->patch(route('games.status', $game), ['status' => 'completed'])
+            ->assertRedirect();
+
+        $game->refresh();
+        $this->assertSame('2026-07-15', $game->started_at->format('Y-m-d'));
+        $this->assertSame('2026-07-20', $game->completed_at->format('Y-m-d'));
     }
 }

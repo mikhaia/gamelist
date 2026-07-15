@@ -28,7 +28,29 @@ body::before {
     mask-image: linear-gradient(to bottom, black, transparent 75%);
 }
 
-.material-symbols-outlined { font-size: 1.25rem; line-height: 1; vertical-align: middle; }
+.material-symbols-outlined {
+    display: inline-block;
+    width: 1em;
+    min-width: 1em;
+    overflow: hidden;
+    font-family: 'Material Symbols Outlined';
+    font-size: 1.25rem;
+    font-style: normal;
+    font-weight: 400;
+    font-feature-settings: 'liga';
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-synthesis: none;
+    line-height: 1;
+    letter-spacing: normal;
+    text-align: center;
+    text-transform: none;
+    vertical-align: middle;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
 .ambient { position: fixed; z-index: 0; border-radius: 9999px; filter: blur(100px); opacity: .18; pointer-events: none; }
 .ambient-one { width: 24rem; height: 24rem; top: 12rem; left: -12rem; background: #7c3aed; }
 .ambient-two { width: 20rem; height: 20rem; top: 30rem; right: -10rem; background: #0891b2; }
