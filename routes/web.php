@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\CatalogBrowserController;
+use App\Http\Controllers\CatalogQuickAddController;
+use App\Http\Controllers\CatalogSearchController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameImportController;
 use App\Http\Controllers\GameListController;
@@ -22,8 +25,13 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::get('/catalog/search/cached', [CatalogSearchController::class, 'cached'])->middleware('throttle:120,1')->name('catalog.cached');
+    Route::get('/catalog/search', [CatalogSearchController::class, 'fresh'])->middleware('throttle:30,1')->name('catalog.search');
     Route::resource('lists', GameListController::class)->parameters(['lists' => 'gameList']);
     Route::patch('/lists/{gameList}/display', [GameListController::class, 'display'])->name('lists.display');
+    Route::get('/lists/{gameList}/catalog', [CatalogBrowserController::class, 'index'])->name('catalog.index');
+    Route::get('/lists/{gameList}/catalog/results', [CatalogBrowserController::class, 'results'])->middleware('throttle:120,1')->name('catalog.results');
+    Route::post('/lists/{gameList}/catalog/{catalogGame}', CatalogQuickAddController::class)->middleware('throttle:60,1')->name('catalog.add');
 
     Route::get('/lists/{gameList}/games/create', [GameController::class, 'create'])->name('games.create');
     Route::post('/lists/{gameList}/games', [GameController::class, 'store'])->name('games.store');

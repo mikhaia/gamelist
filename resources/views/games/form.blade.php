@@ -11,47 +11,29 @@
 
     <div class="grid gap-5 lg:grid-cols-[.9fr_1.1fr]">
         <section class="panel h-fit">
-            <span class="eyebrow"><span class="material-symbols-outlined">travel_explore</span> HowLongToBeat</span>
+            <span class="eyebrow"><span class="material-symbols-outlined">travel_explore</span> Поиск</span>
             <h1 class="text-2xl font-extrabold">{{ $editing ? 'Редактировать игру' : 'Найти игру' }}</h1>
             <p class="muted mt-2">Поиск поможет заполнить название, обложку и время прохождения. Если сервис недоступен, заполните форму вручную.</p>
 
-            <form method="GET" action="{{ $editing ? route('games.edit', $game) : route('games.create', $gameList) }}" class="mt-5 flex gap-2">
+            <form method="GET" action="{{ $editing ? route('games.edit', $game) : route('games.create', $gameList) }}" class="mt-5 flex gap-2" data-catalog-search-form>
                 <input class="field mt-0" name="q" value="{{ $query }}" placeholder="Название игры" aria-label="Название игры для поиска">
                 <button class="button button-secondary shrink-0"><span class="material-symbols-outlined">search</span><span class="hidden sm:inline">{{ __('app.actions.search') }}</span></button>
             </form>
 
-            @if ($catalogError)
-                <div class="mt-4 rounded-2xl border border-amber-400/20 bg-amber-500/8 p-4 text-sm leading-6 text-amber-200">
-                    <strong class="flex items-center gap-2"><span class="material-symbols-outlined">cloud_off</span> HowLongToBeat сейчас недоступен</strong>
-                    <p class="mt-1 text-xs text-amber-200/60">Игру всё равно можно добавить вручную в форме справа.</p>
+                <div class="mt-4 {{ $query === '' ? 'hidden' : '' }}" data-catalog-search data-query="{{ $query }}" data-cache-url="{{ route('catalog.cached') }}" data-search-url="{{ route('catalog.search') }}">
+                    <div class="max-h-[34rem] space-y-2 overflow-y-auto pr-1" data-catalog-results>
+                        @include('games._catalog_results', ['results' => $results, 'cached' => true])
+                    </div>
+                    <div class="mt-3 flex items-center gap-2 rounded-xl border border-violet-400/10 bg-violet-500/5 px-3 py-2.5 text-xs text-violet-200/70 {{ $query === '' ? 'hidden' : '' }}" data-catalog-loading>
+                        <span class="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                        <span data-catalog-loading-label>{{ $results === [] ? 'Ищем игры во внешнем каталоге…' : 'Показали локальные результаты. Ищем остальные…' }}</span>
+                    </div>
+                    <div class="mt-3 hidden rounded-2xl border border-white/8 bg-black/15 p-4 text-sm text-slate-500" data-catalog-empty>Совпадений не найдено. Попробуйте другой запрос или добавьте игру вручную.</div>
+                    <div class="mt-3 hidden rounded-2xl border border-amber-400/20 bg-amber-500/8 p-4 text-sm leading-6 text-amber-200" data-catalog-error>
+                        <strong class="flex items-center gap-2"><span class="material-symbols-outlined">cloud_off</span> Внешний каталог сейчас недоступен</strong>
+                        <p class="mt-1 text-xs text-amber-200/60">Локальные результаты уже показаны. Игру также можно добавить вручную.</p>
+                    </div>
                 </div>
-            @elseif ($query !== '' && $results === [])
-                <div class="mt-4 rounded-2xl border border-white/8 bg-black/15 p-4 text-sm text-slate-500">Совпадений не найдено. Попробуйте другой запрос или добавьте игру вручную.</div>
-            @elseif ($results !== [])
-                <div class="mt-4 max-h-[34rem] space-y-2 overflow-y-auto pr-1">
-                    @foreach ($results as $index => $result)
-                        @php($payload = json_encode([
-                            'title' => $result['title'], 'hltb_id' => $result['id'],
-                            'catalog_cover_url' => $result['cover_url'], 'source_cover_url' => $result['cover_url'],
-                            'main_story_minutes' => $result['main_story_minutes'], 'main_extra_minutes' => $result['main_extra_minutes'],
-                            'completionist_minutes' => $result['completionist_minutes'],
-                        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))
-                        <label class="flex cursor-pointer gap-3 rounded-2xl border border-white/8 bg-black/15 p-3 transition has-checked:border-violet-400/50 has-checked:bg-violet-500/8 hover:bg-white/5">
-                            <input type="radio" name="catalog_result" class="mt-1 accent-violet-500" data-catalog-result="{{ $payload }}">
-                            <div class="grid h-20 w-15 shrink-0 place-items-center overflow-hidden rounded-xl bg-white/5">
-                                @if ($result['cover_url'])<img src="{{ $result['cover_url'] }}" alt="" class="h-full w-full object-cover" loading="lazy">@else<span class="material-symbols-outlined text-slate-700">image</span>@endif
-                            </div>
-                            <span class="min-w-0">
-                                <strong class="line-clamp-2 text-sm leading-5">{{ $result['title'] }}</strong>
-                                <span class="mt-2 flex flex-wrap gap-2 text-[10px] text-slate-500">
-                                    @if ($result['main_story_minutes'])<span>Сюжет: {{ round($result['main_story_minutes'] / 60) }} ч</span>@endif
-                                    @if ($result['completionist_minutes'])<span>100%: {{ round($result['completionist_minutes'] / 60) }} ч</span>@endif
-                                </span>
-                            </span>
-                        </label>
-                    @endforeach
-                </div>
-            @endif
         </section>
 
         <section class="panel">

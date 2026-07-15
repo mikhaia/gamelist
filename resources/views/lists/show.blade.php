@@ -21,6 +21,7 @@
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('games.create', $gameList) }}" class="button button-primary"><span class="material-symbols-outlined">add</span> {{ __('app.actions.add_game') }}</a>
+            <a href="{{ route('catalog.index', $gameList) }}" class="button button-secondary"><span class="material-symbols-outlined">travel_explore</span> {{ __('app.actions.catalog') }}</a>
             <a href="{{ route('imports.create', $gameList) }}" class="button button-secondary"><span class="material-symbols-outlined">playlist_add</span> {{ __('app.actions.import') }}</a>
             <a href="{{ route('lists.edit', $gameList) }}" class="icon-button border border-white/10 bg-white/5" title="{{ __('app.actions.edit') }}"><span class="material-symbols-outlined">settings</span></a>
         </div>

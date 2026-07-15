@@ -7,6 +7,8 @@ enum Platform: string
     case NintendoSwitch = 'nintendo_switch';
     case Steam = 'steam';
     case Pc = 'pc';
+    case PlayStation = 'playstation';
+    case Xbox = 'xbox';
 
     public function label(): string
     {

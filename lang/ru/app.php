@@ -9,7 +9,7 @@ return [
     ],
     'actions' => [
         'create_list' => 'Новый список', 'save' => 'Сохранить', 'cancel' => 'Отмена', 'edit' => 'Изменить',
-        'delete' => 'Удалить', 'add_game' => 'Добавить игру', 'import' => 'Импорт', 'preview' => 'Предпросмотр',
+        'delete' => 'Удалить', 'add_game' => 'Добавить игру', 'catalog' => 'Каталог игр', 'import' => 'Импорт', 'preview' => 'Предпросмотр',
         'import_selected' => 'Импортировать выбранные', 'search' => 'Найти', 'copy' => 'Скопировать ссылку',
         'open' => 'Открыть список', 'back' => 'Назад к списку', 'cards' => 'Карточки', 'compact' => 'Компактно',
     ],
@@ -19,6 +19,7 @@ return [
     ],
     'platforms' => [
         'nintendo_switch' => 'Nintendo Switch', 'steam' => 'Steam', 'pc' => 'PC',
+        'playstation' => 'PlayStation', 'xbox' => 'Xbox',
     ],
     'messages' => [
         'registered' => 'Добро пожаловать в GameList!', 'list_created' => 'Список создан.',

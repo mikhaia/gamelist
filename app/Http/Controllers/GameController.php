@@ -2,26 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Contracts\GameCatalog;
 use App\Enums\GameStatus;
 use App\Enums\Platform;
 use App\Models\Game;
 use App\Models\GameList;
+use App\Services\CatalogGameCache;
 use App\Services\CoverImageService;
 use App\Services\GameTitleNormalizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Throwable;
 
 class GameController extends Controller
 {
     public function __construct(
-        private readonly GameCatalog $catalog,
+        private readonly CatalogGameCache $catalogCache,
         private readonly CoverImageService $covers,
         private readonly GameTitleNormalizer $normalizer,
     ) {}
@@ -95,16 +93,10 @@ class GameController extends Controller
     private function formView(Request $request, GameList $gameList, Game $game): View
     {
         $results = [];
-        $catalogError = false;
         $query = trim((string) $request->query('q'));
 
         if ($query !== '') {
-            try {
-                $results = $this->catalog->search($query);
-            } catch (Throwable $exception) {
-                Log::warning('HowLongToBeat search failed', ['message' => $exception->getMessage()]);
-                $catalogError = true;
-            }
+            $results = $this->catalogCache->search($query);
         }
 
         return view('games.form', [
@@ -113,7 +105,6 @@ class GameController extends Controller
             'statuses' => GameStatus::cases(),
             'platforms' => Platform::cases(),
             'results' => $results,
-            'catalogError' => $catalogError,
             'query' => $query,
         ]);
     }
