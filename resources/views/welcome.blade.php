@@ -36,23 +36,40 @@
         <div class="glass relative overflow-hidden rounded-[2rem] p-4 sm:p-6">
             <div class="mb-5 flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-[.15em] text-violet-300">Nintendo Switch</p>
+                    <p class="text-xs font-bold uppercase tracking-[.15em] text-violet-300">Случайная подборка</p>
                     <h2 class="mt-1 text-xl font-extrabold">Играю сейчас</h2>
                 </div>
-                <span class="rounded-full bg-white/7 px-3 py-1.5 text-xs text-slate-400">12 игр</span>
+                <span class="rounded-full bg-white/7 px-3 py-1.5 text-xs text-slate-400">Из каталога</span>
             </div>
             <div class="grid grid-cols-3 gap-3">
-                @foreach ([['Metroid Prime 4', 'Играю', 'from-violet-900 to-cyan-900'], ['Hades II', 'Установлена', 'from-red-950 to-orange-900'], ['Zelda', 'Хочу сыграть', 'from-emerald-950 to-amber-900']] as $demo)
-                    <div class="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
-                        <div class="flex aspect-[3/4] items-center justify-center bg-gradient-to-br {{ $demo[2] }}">
-                            <span class="material-symbols-outlined text-4xl text-white/30">sports_esports</span>
+                @foreach ($featuredGames as $featuredGame)
+                    <div class="overflow-hidden rounded-2xl border border-white/10 bg-black/20" data-featured-game>
+                        <div class="aspect-[3/4] overflow-hidden bg-gradient-to-br from-violet-950 to-cyan-950">
+                            <img
+                                src="{{ $featuredGame->cover_url }}"
+                                alt="Обложка {{ $featuredGame->title }}"
+                                class="h-full w-full object-cover"
+                                decoding="async"
+                            >
                         </div>
                         <div class="p-3">
-                            <p class="truncate text-xs font-bold">{{ $demo[0] }}</p>
-                            <p class="mt-1 truncate text-[10px] text-slate-500">{{ $demo[1] }}</p>
+                            <p class="truncate text-xs font-bold" title="{{ $featuredGame->title }}">{{ $featuredGame->title }}</p>
+                            <p class="mt-1 truncate text-[10px] text-slate-500">Играю</p>
                         </div>
                     </div>
                 @endforeach
+
+                @for ($placeholder = $featuredGames->count(); $placeholder < 3; $placeholder++)
+                    <div class="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                        <div class="flex aspect-[3/4] items-center justify-center bg-gradient-to-br from-violet-950 to-cyan-950">
+                            <span class="material-symbols-outlined text-4xl text-white/30">sports_esports</span>
+                        </div>
+                        <div class="p-3">
+                            <p class="truncate text-xs font-bold">Новая игра</p>
+                            <p class="mt-1 truncate text-[10px] text-slate-500">Играю</p>
+                        </div>
+                    </div>
+                @endfor
             </div>
         </div>
     </div>
