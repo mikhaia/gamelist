@@ -536,13 +536,15 @@ document.addEventListener('change', async (event) => {
     const form = select.closest('[data-game-status-form]');
     const previousStatus = form.dataset.currentStatus;
     const initialTitle = select.title;
+    const formData = new FormData(form);
+    formData.set('status', select.value);
     select.disabled = true;
     select.setAttribute('aria-busy', 'true');
 
     try {
         const response = await fetch(form.action, {
             method: 'POST',
-            body: new FormData(form),
+            body: formData,
             headers: {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
