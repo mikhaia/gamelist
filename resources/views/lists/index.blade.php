@@ -34,7 +34,7 @@
                     <span class="status-chip"><span class="material-symbols-outlined text-sm">{{ $list->is_public ? 'public' : 'lock' }}</span>{{ $list->is_public ? 'Публичный' : 'Личный' }}</span>
                 </div>
                 <h2 class="relative mt-6 text-xl font-extrabold tracking-tight transition group-hover:text-violet-200">{{ $list->name }}</h2>
-                <p class="relative mt-2 line-clamp-2 min-h-12 text-sm leading-6 text-slate-400">{{ $list->description ?: 'Игровая коллекция без описания.' }}</p>
+                <p class="relative mt-2 line-clamp-2 min-h-12 text-sm leading-6 text-slate-400">{{ $list->description }}</p>
                 <div class="relative mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs font-semibold text-slate-400">
                     <span>{{ $list->games_count }} игр</span>
                     <span class="flex items-center gap-1 text-slate-400">Открыть <span class="material-symbols-outlined text-sm transition group-hover:translate-x-1">arrow_forward</span></span>

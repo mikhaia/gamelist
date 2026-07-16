@@ -114,7 +114,7 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-[#090b16]/95 via-[#090b16]/65 to-black/15"></div>
                     @endif
                     <h3 class="relative text-xl font-extrabold text-white">{{ $list->name }}</h3>
-                    <p class="relative mt-2 line-clamp-2 min-h-12 text-sm leading-6 text-slate-300">{{ $list->description ?: 'Игровая коллекция без описания.' }}</p>
+                    <p class="relative mt-2 line-clamp-2 min-h-12 text-sm leading-6 text-slate-300">{{ $list->description }}</p>
                     <div class="relative mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs font-semibold text-slate-300">
                         <span>{{ $list->games_count }} {{ trans_choice('app.counts.games', $list->games_count) }}</span>
                         <span class="flex items-center gap-1">Открыть <span class="material-symbols-outlined text-sm">arrow_forward</span></span>
