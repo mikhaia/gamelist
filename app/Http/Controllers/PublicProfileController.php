@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\GameStatus;
 use App\Models\Game;
 use App\Models\User;
 use App\Services\UserProfileStats;
@@ -25,6 +26,32 @@ class PublicProfileController extends Controller
         $favoriteGames = $profile->favoriteGames()
             ->with('gameList')
             ->get();
+        $publicGames = Game::query()
+            ->whereHas('gameList', fn ($query) => $query
+                ->where('user_id', $profile->getKey())
+                ->where('is_public', true));
+        $recentGamesByStatus = [
+            GameStatus::WantToPlay->value => (clone $publicGames)
+                ->where('status', GameStatus::WantToPlay->value)
+                ->latest('created_at')
+                ->latest('id')
+                ->limit(3)
+                ->get(),
+            GameStatus::Playing->value => (clone $publicGames)
+                ->where('status', GameStatus::Playing->value)
+                ->whereNotNull('started_at')
+                ->orderByDesc('started_at')
+                ->latest('id')
+                ->limit(3)
+                ->get(),
+            GameStatus::Completed->value => (clone $publicGames)
+                ->where('status', GameStatus::Completed->value)
+                ->whereNotNull('completed_at')
+                ->orderByDesc('completed_at')
+                ->latest('id')
+                ->limit(3)
+                ->get(),
+        ];
         $isOwner = $request->user()?->is($profile) ?? false;
         $availableGames = $isOwner
             ? Game::query()
@@ -38,6 +65,7 @@ class PublicProfileController extends Controller
             'profile' => $profile,
             'publicLists' => $publicLists,
             'favoriteGames' => $favoriteGames,
+            'recentGamesByStatus' => $recentGamesByStatus,
             'availableGames' => $availableGames,
             'stats' => $this->profileStats->forUser($profile),
             'isOwner' => $isOwner,

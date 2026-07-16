@@ -94,6 +94,63 @@
     @endif
 </section>
 
+<section class="mt-10" aria-label="Игры пользователя по статусам">
+    @php
+        $profileGameColumns = [
+            ['status' => 'want_to_play', 'title' => 'Хочу сыграть', 'icon' => 'bookmark_add', 'iconClass' => 'bg-violet-500/10 text-violet-300', 'date' => 'created_at', 'dateLabel' => 'Добавлена'],
+            ['status' => 'playing', 'title' => 'Играю', 'icon' => 'sports_esports', 'iconClass' => 'bg-cyan-500/10 text-cyan-300', 'date' => 'started_at', 'dateLabel' => 'Начал'],
+            ['status' => 'completed', 'title' => 'Пройдена', 'icon' => 'trophy', 'iconClass' => 'bg-amber-500/10 text-amber-300', 'date' => 'completed_at', 'dateLabel' => 'Закончил'],
+        ];
+    @endphp
+
+    <div class="grid gap-4 lg:grid-cols-3">
+        @foreach ($profileGameColumns as $column)
+            @php($columnGames = $recentGamesByStatus[$column['status']])
+            <div class="glass overflow-hidden rounded-3xl" data-profile-status-column="{{ $column['status'] }}">
+                <div class="flex items-center gap-3 border-b border-white/8 px-4 py-4 sm:px-5">
+                    <span class="grid size-10 shrink-0 place-items-center rounded-xl {{ $column['iconClass'] }}">
+                        <span class="material-symbols-outlined text-xl">{{ $column['icon'] }}</span>
+                    </span>
+                    <h2 class="min-w-0 flex-1 text-base font-extrabold text-white">{{ $column['title'] }}</h2>
+                </div>
+
+                <div class="p-2">
+                    @forelse ($columnGames as $game)
+                        @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
+                        @if ($gamePageUrl)
+                            <a href="{{ $gamePageUrl }}" class="group flex items-center gap-3 rounded-2xl p-2.5 transition hover:bg-white/[.045] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-violet-400" aria-label="Открыть страницу игры {{ $game->title }}" data-profile-status-game>
+                        @else
+                            <article class="flex items-center gap-3 rounded-2xl p-2.5" data-profile-status-game>
+                        @endif
+                            <span class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950">
+                                @if ($game->cover_url)
+                                    <img src="{{ $game->cover_url }}" alt="" class="h-full w-full object-cover transition duration-300 group-hover:scale-105" loading="lazy">
+                                @else
+                                    <span class="material-symbols-outlined text-2xl text-white/20">sports_esports</span>
+                                @endif
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate text-sm font-extrabold text-slate-100 transition group-hover:text-violet-200">{{ $game->title }}</span>
+                                <span class="mt-1 block truncate text-[10px] font-semibold text-slate-500">{{ $game->platform->label() }}</span>
+                                <span class="mt-1.5 flex items-center gap-1 text-[10px] text-slate-500">
+                                    <span class="material-symbols-outlined text-xs">calendar_today</span>
+                                    {{ $column['dateLabel'] }} {{ $game->{$column['date']}->format('d.m.Y') }}
+                                </span>
+                            </span>
+                        @if ($gamePageUrl)
+                            </a>
+                        @else
+                            </article>
+                        @endif
+                    @empty
+                        <div class="grid min-h-24 place-items-center px-4 text-center text-xs text-slate-600">Здесь пока нет игр</div>
+                    @endforelse
+                </div>
+            </div>
+        @endforeach
+    </div>
+</section>
+
 <section class="mt-10">
     <div class="mb-5">
         <span class="eyebrow"><span class="material-symbols-outlined">view_list</span> Коллекции</span>

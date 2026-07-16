@@ -3,15 +3,72 @@
 namespace Tests\Feature;
 
 use App\Models\CatalogGame;
+use App\Models\GameList;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SocialProfileTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_profile_shows_three_recent_public_game_status_columns(): void
+    {
+        $profile = User::factory()->create(['login' => 'chrono']);
+        $publicList = $profile->gameLists()->create([
+            'name' => 'Public Games',
+            'slug' => 'public-games',
+            'default_platform' => 'pc',
+            'is_public' => true,
+        ]);
+        $privateList = $profile->gameLists()->create([
+            'name' => 'Private Games',
+            'slug' => 'private-games',
+            'default_platform' => 'pc',
+            'is_public' => false,
+        ]);
+
+        $createGame = function (GameList $list, string $title, string $status, string $createdAt, ?string $startedAt = null, ?string $completedAt = null): void {
+            $game = $list->games()->create([
+                'title' => $title,
+                'normalized_title' => strtolower($title),
+                'status' => $status,
+                'platform' => 'pc',
+                'started_at' => $startedAt,
+                'completed_at' => $completedAt,
+            ]);
+            $game->forceFill([
+                'created_at' => Carbon::parse($createdAt),
+                'updated_at' => Carbon::parse($createdAt),
+            ])->saveQuietly();
+        };
+
+        $createGame($publicList, 'Want Older', 'want_to_play', '2026-01-01');
+        $createGame($publicList, 'Want First', 'want_to_play', '2026-01-02');
+        $createGame($publicList, 'Want Second', 'want_to_play', '2026-01-03');
+        $createGame($publicList, 'Want Latest', 'want_to_play', '2026-01-04');
+        $createGame($publicList, 'Playing Older', 'playing', '2026-02-10', '2026-02-01');
+        $createGame($publicList, 'Playing Latest', 'playing', '2026-02-02', '2026-02-05');
+        $createGame($publicList, 'Completed Older', 'completed', '2026-03-10', '2026-02-01', '2026-03-01');
+        $createGame($publicList, 'Completed Latest', 'completed', '2026-03-02', '2026-02-01', '2026-03-06');
+        $createGame($privateList, 'Secret Playing', 'playing', '2026-04-01', '2026-04-01');
+
+        $response = $this->get(route('profiles.show', $profile->login));
+
+        $response->assertOk()
+            ->assertSeeInOrder(['Хочу сыграть', 'Want Latest', 'Want Second', 'Want First'])
+            ->assertSeeInOrder(['Играю', 'Playing Latest', 'Playing Older'])
+            ->assertSeeInOrder(['Пройдена', 'Completed Latest', 'Completed Older'])
+            ->assertSeeText('Добавлена 04.01.2026')
+            ->assertSeeText('Начал 05.02.2026')
+            ->assertSeeText('Закончил 06.03.2026')
+            ->assertDontSee('Want Older')
+            ->assertDontSee('Secret Playing');
+        $this->assertSame(3, substr_count($response->getContent(), 'data-profile-status-column='));
+    }
 
     public function test_public_profile_shows_only_public_lists_and_public_game_statistics(): void
     {
