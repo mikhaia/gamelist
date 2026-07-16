@@ -3,8 +3,10 @@
 <article {{ $attributes->class('glass group relative overflow-hidden rounded-3xl') }}>
     @if ($user->profile_cover_url)
         <img src="{{ $user->profile_cover_url }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-[1.02]">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#090b16]/60 via-[#090b16]/35 to-[#090b16]/10"></div>
+    @else
+        <div class="absolute inset-0 bg-gradient-to-r from-[#090b16]/95 via-[#090b16]/82 to-[#090b16]/55"></div>
     @endif
-    <div class="absolute inset-0 bg-gradient-to-r from-[#090b16]/95 via-[#090b16]/82 to-[#090b16]/55"></div>
 
     <div class="relative flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-7">
         <x-avatar :user="$user" :size="$compact ? 'small' : 'large'" />

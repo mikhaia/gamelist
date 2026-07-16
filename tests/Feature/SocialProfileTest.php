@@ -115,6 +115,12 @@ class SocialProfileTest extends TestCase
         Storage::disk('public')->assertMissing('profile-covers/old.webp');
         Storage::disk('public')->assertExists($user->profile_cover_path);
         $this->assertStringEndsWith('.webp', $user->profile_cover_path);
+
+        $this->actingAs($user)->get(route('profiles.show', $user->login))
+            ->assertOk()
+            ->assertSee('from-[#090b16]/60', false)
+            ->assertSee('via-[#090b16]/35', false)
+            ->assertSee('to-[#090b16]/10', false);
     }
 
     public function test_public_list_links_the_author_to_their_profile(): void
