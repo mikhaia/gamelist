@@ -1,17 +1,23 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\OtpPasswordResetController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CatalogBrowserController;
 use App\Http\Controllers\CatalogQuickAddController;
 use App\Http\Controllers\CatalogSearchController;
+use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameImportController;
 use App\Http\Controllers\GameListController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileFavoriteController;
 use App\Http\Controllers\PublicListController;
+use App\Http\Controllers\PublicProfileController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Middleware\TrackUserActivity;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -21,11 +27,20 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/register', [RegisteredUserController::class, 'store']);
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+    Route::get('/forgot-password', [OtpPasswordResetController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [OtpPasswordResetController::class, 'send'])->middleware('throttle:10,1')->name('password.email');
+    Route::get('/reset-password', [OtpPasswordResetController::class, 'edit'])->name('password.otp');
+    Route::post('/reset-password', [OtpPasswordResetController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 });
 
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', TrackUserActivity::class])->group(function (): void {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/history', HistoryController::class)->name('history.index');
+    Route::get('/friends', [FriendController::class, 'index'])->name('friends.index');
+    Route::post('/friends/{friend}', [FriendController::class, 'store'])->name('friends.store');
+    Route::delete('/friends/{friend}', [FriendController::class, 'destroy'])->name('friends.destroy');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::delete('/notifications', [NotificationController::class, 'clear'])->name('notifications.clear');
     Route::get('/catalog/search/cached', [CatalogSearchController::class, 'cached'])->middleware('throttle:120,1')->name('catalog.cached');
     Route::get('/catalog/search', [CatalogSearchController::class, 'fresh'])->middleware('throttle:30,1')->name('catalog.search');
     Route::resource('lists', GameListController::class)->parameters(['lists' => 'gameList']);
@@ -47,8 +62,15 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::patch('/settings/avatar', [SettingsController::class, 'avatar'])->name('settings.avatar');
+    Route::patch('/settings/email', [SettingsController::class, 'email'])->name('settings.email');
+    Route::patch('/settings/profile-cover', [SettingsController::class, 'profileCover'])->name('settings.profile-cover');
     Route::patch('/settings/password', [SettingsController::class, 'password'])->name('settings.password');
+    Route::patch('/profile/favorites', [ProfileFavoriteController::class, 'update'])->name('profile.favorites.update');
 });
+
+Route::get('/{login}', PublicProfileController::class)
+    ->where('login', '[A-Za-z0-9_]+')
+    ->name('profiles.show');
 
 Route::get('/{login}/{slug}', [PublicListController::class, 'show'])
     ->where(['login' => '[A-Za-z0-9_]+', 'slug' => '[a-z0-9]+(?:-[a-z0-9]+)*'])

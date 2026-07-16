@@ -1,0 +1,148 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class SocialProfileTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_public_profile_shows_only_public_lists_and_public_game_statistics(): void
+    {
+        $profile = User::factory()->create(['login' => 'chrono', 'email' => 'chrono@example.com']);
+        $friend = User::factory()->create();
+        $profile->friends()->attach($friend);
+
+        $publicList = $profile->gameLists()->create([
+            'name' => 'Public Games',
+            'slug' => 'public-games',
+            'default_platform' => 'pc',
+            'is_public' => true,
+        ]);
+        $publicList->games()->create([
+            'title' => 'Control',
+            'normalized_title' => 'control',
+            'status' => 'playing',
+            'platform' => 'pc',
+        ]);
+        $privateList = $profile->gameLists()->create([
+            'name' => 'Private Games',
+            'slug' => 'private-games',
+            'default_platform' => 'pc',
+            'is_public' => false,
+        ]);
+        $privateList->games()->create([
+            'title' => 'Secret Game',
+            'normalized_title' => 'secret game',
+            'status' => 'completed',
+            'platform' => 'pc',
+        ]);
+
+        $this->get(route('profiles.show', 'CHRONO'))
+            ->assertOk()
+            ->assertSee('@chrono')
+            ->assertSee('Public Games')
+            ->assertDontSee('Private Games')
+            ->assertSeeText('1 публичный список')
+            ->assertSeeText('1 игра')
+            ->assertSeeText('Играю · 1')
+            ->assertDontSeeText('Пройдено · 1');
+    }
+
+    public function test_owner_can_choose_up_to_three_favorite_games_from_own_lists(): void
+    {
+        $user = User::factory()->create(['login' => 'chrono']);
+        $other = User::factory()->create();
+        $list = $user->gameLists()->create([
+            'name' => 'Games', 'slug' => 'games', 'default_platform' => 'pc',
+        ]);
+        $games = collect(['Hades', 'Control', 'Celeste'])->map(
+            fn (string $title) => $list->games()->create([
+                'title' => $title,
+                'normalized_title' => strtolower($title),
+                'status' => 'completed',
+                'platform' => 'pc',
+            ]),
+        );
+        $foreignList = $other->gameLists()->create([
+            'name' => 'Other', 'slug' => 'other', 'default_platform' => 'pc',
+        ]);
+        $foreignGame = $foreignList->games()->create([
+            'title' => 'Foreign',
+            'normalized_title' => 'foreign',
+            'status' => 'playing',
+            'platform' => 'pc',
+        ]);
+
+        $this->actingAs($user)->get(route('profiles.show', 'chrono'))
+            ->assertOk()
+            ->assertSee('Любимая игра 1')
+            ->assertSee('Начните вводить название')
+            ->assertSee('data-favorite-combobox', false)
+            ->assertSee('data-title="Hades"', false)
+            ->assertDontSee('<select class="field" id="favorite_game_', false);
+
+        $this->actingAs($user)->patch(route('profile.favorites.update'), [
+            'game_ids' => [$games[1]->id, '', $games[0]->id],
+        ])->assertRedirect(route('profiles.show', 'chrono'));
+
+        $this->assertSame(
+            [$games[1]->id, $games[0]->id],
+            $user->favoriteGames()->pluck('games.id')->all(),
+        );
+
+        $this->actingAs($user)->patch(route('profile.favorites.update'), [
+            'game_ids' => [$foreignGame->id],
+        ])->assertSessionHasErrors('game_ids');
+    }
+
+    public function test_profile_cover_is_optimized_and_replaces_previous_image(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['profile_cover_path' => 'profile-covers/old.webp']);
+        Storage::disk('public')->put('profile-covers/old.webp', 'old');
+
+        $this->actingAs($user)->patch(route('settings.profile-cover'), [
+            'profile_cover' => UploadedFile::fake()->image('profile.jpg', 1800, 700),
+        ])->assertRedirect();
+
+        $user->refresh();
+        Storage::disk('public')->assertMissing('profile-covers/old.webp');
+        Storage::disk('public')->assertExists($user->profile_cover_path);
+        $this->assertStringEndsWith('.webp', $user->profile_cover_path);
+    }
+
+    public function test_public_list_links_the_author_to_their_profile(): void
+    {
+        $profile = User::factory()->create(['login' => 'chrono']);
+        $list = $profile->gameLists()->create([
+            'name' => 'Games',
+            'slug' => 'games',
+            'default_platform' => 'pc',
+            'is_public' => true,
+        ]);
+
+        $this->get(route('public.lists.show', ['chrono', $list->slug]))
+            ->assertOk()
+            ->assertSee(route('profiles.show', 'chrono'))
+            ->assertSee('Добавить в друзья');
+    }
+
+    public function test_authenticated_navigation_links_avatar_to_profile_and_has_settings_button(): void
+    {
+        $user = User::factory()->create(['login' => 'chrono']);
+
+        $this->actingAs($user)->get(route('lists.index'))
+            ->assertOk()
+            ->assertSee('href="'.route('profiles.show', 'chrono').'"', false)
+            ->assertSee('aria-label="Мой профиль"', false)
+            ->assertSee('href="'.route('settings.edit').'"', false)
+            ->assertSee('aria-label="Настройки"', false)
+            ->assertSee('cursor-pointer', false);
+    }
+}

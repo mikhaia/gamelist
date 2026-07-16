@@ -12,12 +12,15 @@
         <form method="POST" action="{{ route('login') }}" class="mt-7 space-y-5">
             @csrf
             <div>
-                <label class="label" for="login">Логин</label>
-                <input class="field" id="login" name="login" value="{{ old('login') }}" autocomplete="username" required autofocus placeholder="your_login">
+                <label class="label" for="login">Логин или email</label>
+                <input class="field" id="login" name="login" value="{{ old('login') }}" autocomplete="username" required autofocus placeholder="your_login или player@example.com">
                 @error('login') <p class="field-error">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label class="label" for="password">Пароль</label>
+                <div class="flex items-center justify-between gap-3">
+                    <label class="label" for="password">Пароль</label>
+                    <a href="{{ route('password.request') }}" class="text-xs font-bold text-violet-300 transition hover:text-violet-200">Забыли пароль?</a>
+                </div>
                 <input class="field" id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••">
                 @error('password') <p class="field-error">{{ $message }}</p> @enderror
             </div>

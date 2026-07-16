@@ -9,7 +9,14 @@
         <div class="absolute inset-0 bg-[#080a14]/35"></div>
     @endif
     <div class="relative">
-        <span class="eyebrow"><span class="material-symbols-outlined">public</span> Публичный список {{ '@'.$gameList->user->login }}</span>
+        <div class="mb-3 flex flex-wrap items-center justify-center gap-2">
+            <span class="eyebrow mb-0">
+                <span class="material-symbols-outlined">public</span>
+                Публичный список
+                <a href="{{ route('profiles.show', $gameList->user->login) }}" class="text-white transition hover:text-violet-200">{{ '@'.$gameList->user->login }}</a>
+            </span>
+            <x-friend-button :user="$gameList->user" :is-friend="$isFriend" compact />
+        </div>
         <h1 class="page-title mx-auto max-w-3xl">{{ $gameList->name }}</h1>
         @if ($gameList->description)<p class="muted mx-auto mt-3 max-w-2xl text-slate-300">{{ $gameList->description }}</p>@endif
         <p class="mt-4 text-xs font-semibold text-slate-400">{{ $selectedStatuses === [] ? $totalGames : $gameList->games->count().' из '.$totalGames }} игр · Обновлён {{ $gameList->updated_at->translatedFormat('j F Y') }}</p>

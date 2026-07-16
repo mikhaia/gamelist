@@ -30,6 +30,10 @@ class HomePageTest extends TestCase
         $page = $this->get(route('home'));
 
         $page->assertOk()
+            ->assertSee('@zerocool')
+            ->assertSee('Steam')
+            ->assertDontSee('Случайная подборка')
+            ->assertDontSee('Из каталога')
             ->assertSee('Featured Game 1')
             ->assertSee('Featured Game 2')
             ->assertSee('Featured Game 3')

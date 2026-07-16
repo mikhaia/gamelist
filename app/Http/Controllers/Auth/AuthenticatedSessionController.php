@@ -23,9 +23,13 @@ class AuthenticatedSessionController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $credentials['login'] = strtolower($credentials['login']);
+        $identifier = strtolower(trim($credentials['login']));
+        $identifierField = str_contains($identifier, '@') ? 'email' : 'login';
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (! Auth::attempt([
+            $identifierField => $identifier,
+            'password' => $credentials['password'],
+        ], $request->boolean('remember'))) {
             throw ValidationException::withMessages(['login' => __('auth.failed')]);
         }
 

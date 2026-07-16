@@ -30,6 +30,7 @@ class PublicListController extends Controller
             'statuses' => $gameList->availableStatuses(),
             'selectedStatuses' => $selectedStatuses,
             'totalGames' => $totalGames,
+            'isFriend' => $request->user()?->isFriendsWith($gameList->user) ?? false,
         ]);
     }
 }

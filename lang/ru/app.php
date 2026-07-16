@@ -5,7 +5,8 @@ return [
     'tagline' => 'Твоя игровая история — в одном месте',
     'hours' => '{1} :count час|[2,4] :count часа|[5,*] :count часов',
     'nav' => [
-        'lists' => 'Мои списки', 'history' => 'Моя история', 'login' => 'Войти', 'register' => 'Регистрация', 'logout' => 'Выйти', 'settings' => 'Настройки',
+        'lists' => 'Мои списки', 'history' => 'Моя история', 'friends' => 'Мои друзья',
+        'login' => 'Войти', 'register' => 'Регистрация', 'logout' => 'Выйти', 'settings' => 'Настройки',
     ],
     'actions' => [
         'create_list' => 'Новый список', 'save' => 'Сохранить', 'cancel' => 'Отмена', 'edit' => 'Изменить',
@@ -21,13 +22,27 @@ return [
         'nintendo_switch' => 'Nintendo Switch', 'steam' => 'Steam', 'pc' => 'PC',
         'playstation' => 'PlayStation', 'xbox' => 'Xbox',
     ],
+    'profile_statuses' => [
+        'want_to_play' => 'Хочу сыграть', 'installed' => 'Установлено', 'playing' => 'Играю',
+        'completed' => 'Пройдено', 'dropped' => 'Брошено',
+    ],
+    'counts' => [
+        'friends' => '{1} друг|[2,4] друга|[5,*] друзей',
+        'public_lists' => '{1} публичный список|[2,4] публичных списка|[5,*] публичных списков',
+        'games' => '{1} игра|[2,4] игры|[5,*] игр',
+    ],
     'messages' => [
         'registered' => 'Добро пожаловать в GameList!', 'list_created' => 'Список создан.',
         'list_updated' => 'Список обновлён.', 'list_deleted' => 'Список удалён.',
         'game_created' => 'Игра добавлена.', 'game_updated' => 'Игра обновлена.',
         'game_deleted' => 'Игра удалена.', 'status_updated' => 'Статус обновлён.',
         'imported' => 'Добавлено игр: :count.', 'copied' => 'Ссылка скопирована.',
-        'avatar_updated' => 'Аватар обновлён.', 'password_updated' => 'Пароль изменён.',
+        'avatar_updated' => 'Аватар обновлён.', 'email_updated' => 'Email изменён.', 'password_updated' => 'Пароль изменён.',
+        'profile_cover_updated' => 'Обложка профиля обновлена.', 'favorites_updated' => 'Любимые игры обновлены.',
+        'friend_added' => 'Пользователь добавлен в друзья.', 'friend_removed' => 'Пользователь удалён из друзей.',
+        'notification_removed' => 'Уведомление удалено.', 'notifications_cleared' => 'Уведомления очищены.',
+        'password_reset_code_sent' => 'Если аккаунт с таким email существует, код уже отправлен.',
+        'password_reset_complete' => 'Пароль изменён. Теперь войдите с новым паролем.',
     ],
     'errors' => [
         'cover_download' => 'Не удалось скачать обложку. Попробуйте другой URL или загрузите файл.',
@@ -38,5 +53,9 @@ return [
         'game_duplicate' => 'Такая игра уже есть в этом списке.',
         'statuses_in_use' => 'Нельзя отключить статусы, которые уже используются: :statuses. Сначала измените статусы этих игр.',
         'import_limit' => 'За один раз можно импортировать не более 100 игр.',
+        'favorite_games_owner' => 'Можно выбрать только игры из собственных списков.',
+        'login_reserved' => 'Этот логин зарезервирован системой. Выберите другой.',
+        'password_reset_code_invalid' => 'Код неверный, просрочен или больше не действует.',
+        'password_reset_throttled' => 'Слишком много запросов. Повторите через :seconds сек.',
     ],
 ];

@@ -40,4 +40,33 @@ class SettingsTest extends TestCase
 
         $this->assertTrue(Hash::check('new-password', $user->fresh()->password));
     }
+
+    public function test_user_can_set_change_and_remove_email(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->patch(route('settings.email'), [
+            'email' => ' Player@Example.COM ',
+        ])->assertRedirect();
+
+        $this->assertSame('player@example.com', $user->fresh()->email);
+
+        $this->actingAs($user)->patch(route('settings.email'), [
+            'email' => '',
+        ])->assertRedirect();
+
+        $this->assertNull($user->fresh()->email);
+    }
+
+    public function test_user_cannot_use_another_users_email(): void
+    {
+        User::factory()->create(['email' => 'taken@example.com']);
+        $user = User::factory()->create(['email' => 'current@example.com']);
+
+        $this->actingAs($user)->patch(route('settings.email'), [
+            'email' => 'TAKEN@EXAMPLE.COM',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertSame('current@example.com', $user->fresh()->email);
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\CoverImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -33,6 +34,46 @@ class SettingsController extends Controller
         $request->user()->update(['avatar_path' => $path]);
 
         return back()->with('success', __('app.messages.avatar_updated'));
+    }
+
+    public function email(Request $request): RedirectResponse
+    {
+        $email = $request->input('email');
+        if (is_string($email)) {
+            $request->merge(['email' => strtolower(trim($email)) ?: null]);
+        }
+
+        $validated = $request->validate([
+            'email' => [
+                'nullable',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users', 'email')->ignore($request->user()->getKey()),
+            ],
+        ]);
+
+        $request->user()->update(['email' => $validated['email'] ?? null]);
+
+        return back()->with('success', __('app.messages.email_updated'));
+    }
+
+    public function profileCover(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'profile_cover' => ['required', 'image', 'max:8192'],
+        ]);
+
+        $path = $this->images->storeUpload(
+            $validated['profile_cover'],
+            $request->user()->profile_cover_path,
+            'profile-covers',
+            1800,
+            700,
+        );
+        $request->user()->update(['profile_cover_path' => $path]);
+
+        return back()->with('success', __('app.messages.profile_cover_updated'));
     }
 
     public function password(Request $request): RedirectResponse

@@ -36,10 +36,10 @@
         <div class="glass relative overflow-hidden rounded-[2rem] p-4 sm:p-6">
             <div class="mb-5 flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-[.15em] text-violet-300">Случайная подборка</p>
+                    <p class="text-xs font-bold uppercase tracking-[.15em] text-violet-300">@zerocool</p>
                     <h2 class="mt-1 text-xl font-extrabold">Играю сейчас</h2>
                 </div>
-                <span class="rounded-full bg-white/7 px-3 py-1.5 text-xs text-slate-400">Из каталога</span>
+                <span class="rounded-full bg-white/7 px-3 py-1.5 text-xs text-slate-400">Steam</span>
             </div>
             @php($featuredStatuses = [__('app.statuses.want_to_play'), __('app.statuses.playing'), __('app.statuses.completed')])
             <div class="grid grid-cols-3 gap-3">

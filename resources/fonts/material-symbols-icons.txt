@@ -8,6 +8,7 @@ block
 bookmark_add
 check
 check_circle
+close
 cloud_off
 content_copy
 delete
@@ -19,12 +20,14 @@ filter_alt
 filter_alt_off
 flag
 grid_view
+groups
 history
 image
 link
 lock
 login
 logout
+notifications
 password
 person
 person_add

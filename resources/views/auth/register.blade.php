@@ -7,7 +7,7 @@
     <div class="panel">
         <div class="brand-mark mb-6"><span class="material-symbols-outlined">person_add</span></div>
         <h1 class="text-2xl font-extrabold">Создать аккаунт</h1>
-        <p class="muted mt-2">Нужны только логин и пароль. Логин станет частью публичных ссылок.</p>
+        <p class="muted mt-2">Логин станет частью публичных ссылок, а email можно использовать для входа.</p>
 
         <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-5">
             @csrf
@@ -16,6 +16,12 @@
                 <input class="field" id="login" name="login" value="{{ old('login') }}" autocomplete="username" required autofocus placeholder="your_login">
                 <p class="mt-2 text-xs text-slate-600">Латинские буквы, цифры и _. От 3 до 32 символов.</p>
                 @error('login') <p class="field-error">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="label" for="email">Email <span class="font-normal text-slate-600">· необязательно</span></label>
+                <input class="field" id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" inputmode="email" placeholder="player@example.com">
+                <p class="mt-2 text-xs text-slate-600">Email должен быть уникальным. Его можно добавить или изменить позже.</p>
+                @error('email') <p class="field-error">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="label" for="password">Пароль</label>

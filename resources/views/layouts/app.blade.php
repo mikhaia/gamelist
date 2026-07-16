@@ -18,7 +18,7 @@
         @font-face {
             font-family: 'Material Symbols Outlined';
             font-style: normal;
-            font-weight: 300 600;
+            font-weight: 400;
             font-display: block;
             src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}') format('woff2');
         }
@@ -38,7 +38,7 @@
                 <span class="brand-mark"><span class="material-symbols-outlined">stadia_controller</span></span>
                 <span class="hidden text-lg sm:inline">Game<span class="text-violet-400">List</span></span>
             </a>
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex min-w-0 items-center gap-0.5 sm:gap-2 lg:gap-3">
                 @auth
                     <a class="nav-link" href="{{ route('lists.index') }}">
                         <span class="material-symbols-outlined">view_list</span>
@@ -48,17 +48,72 @@
                         <span class="material-symbols-outlined">history</span>
                         <span class="hidden sm:inline">{{ __('app.nav.history') }}</span>
                     </a>
+                    <a class="nav-link" href="{{ route('friends.index') }}" title="{{ __('app.nav.friends') }}">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span class="hidden lg:inline">{{ __('app.nav.friends') }}</span>
+                    </a>
                     <span class="hidden text-sm text-slate-400 md:inline">{{ '@'.auth()->user()->login }}</span>
-                    <a href="{{ route('settings.edit') }}" class="grid size-10 place-items-center overflow-hidden rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white" title="Настройки" aria-label="Настройки">
+                    <a href="{{ route('profiles.show', auth()->user()->login) }}" class="grid size-8 cursor-pointer place-items-center overflow-hidden rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white sm:size-10" title="Мой профиль" aria-label="Мой профиль">
                         @if (auth()->user()->avatar_url)
                             <img src="{{ auth()->user()->avatar_url }}" alt="Аватар {{ auth()->user()->login }}" class="h-full w-full object-cover">
                         @else
                             <span class="material-symbols-outlined">person</span>
                         @endif
                     </a>
+                    <a href="{{ route('settings.edit') }}" class="grid size-8 cursor-pointer place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white sm:size-10" title="Настройки" aria-label="Настройки">
+                        <span class="material-symbols-outlined">settings</span>
+                    </a>
+                    <div class="relative" data-notification-center data-notification-count="{{ $navigationNotificationCount }}">
+                        <button type="button" class="relative grid size-8 cursor-pointer place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white sm:size-10" data-notification-toggle aria-label="Уведомления" aria-expanded="false">
+                            <span class="material-symbols-outlined">notifications</span>
+                            <span class="{{ $navigationNotificationCount ? '' : 'hidden' }} absolute -top-1 -right-1 grid min-w-5 place-items-center rounded-full border-2 border-[#090b16] bg-violet-500 px-1 text-[10px] font-extrabold leading-4 text-white" data-notification-badge>
+                                {{ $navigationNotificationCount > 99 ? '99+' : $navigationNotificationCount }}
+                            </span>
+                        </button>
+
+                        <div class="absolute top-12 right-0 z-50 hidden w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#0b0e1a] shadow-2xl shadow-black/50" data-notification-panel role="dialog" aria-label="Уведомления">
+                            <div class="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+                                <div>
+                                    <p class="text-sm font-extrabold text-white">Уведомления</p>
+                                    <p class="text-[11px] text-slate-500">Сохраняются до удаления</p>
+                                </div>
+                                <form method="POST" action="{{ route('notifications.clear') }}" data-notification-clear>
+                                    @csrf @method('DELETE')
+                                    <button class="text-xs font-bold text-slate-400 transition hover:text-white" {{ $navigationNotificationCount ? '' : 'disabled' }}>Очистить</button>
+                                </form>
+                            </div>
+
+                            <div class="max-h-96 overflow-y-auto overscroll-contain" data-notification-list>
+                                @foreach ($navigationNotifications as $notification)
+                                    <article class="group flex gap-3 border-b border-white/8 px-3 py-3 last:border-b-0 hover:bg-white/[.04]" data-notification-item="{{ $notification->id }}">
+                                        <a href="{{ $notification->data['url'] ?? '#' }}" class="flex min-w-0 flex-1 gap-3">
+                                            <span class="grid size-9 shrink-0 place-items-center rounded-xl border border-violet-400/15 bg-violet-500/10 text-violet-300">
+                                                <span class="material-symbols-outlined text-lg">{{ $notification->data['icon'] ?? 'notifications' }}</span>
+                                            </span>
+                                            <span class="min-w-0">
+                                                <span class="block text-xs leading-5 text-slate-200">{{ $notification->data['message'] ?? 'Новое событие' }}</span>
+                                                <span class="mt-1 block text-[10px] font-semibold text-slate-600">{{ $notification->created_at->diffForHumans() }}</span>
+                                            </span>
+                                        </a>
+                                        <form method="POST" action="{{ route('notifications.destroy', $notification->id) }}" class="shrink-0" data-notification-dismiss>
+                                            @csrf @method('DELETE')
+                                            <button class="grid size-8 place-items-center rounded-lg text-slate-600 transition hover:bg-white/8 hover:text-white" aria-label="Удалить уведомление" title="Удалить">
+                                                <span class="material-symbols-outlined text-base">close</span>
+                                            </button>
+                                        </form>
+                                    </article>
+                                @endforeach
+                            </div>
+
+                            <div class="{{ $navigationNotificationCount ? 'hidden' : '' }} px-5 py-10 text-center" data-notification-empty>
+                                <span class="material-symbols-outlined text-4xl text-violet-300/30">notifications</span>
+                                <p class="mt-2 text-xs text-slate-500">Новых событий пока нет.</p>
+                            </div>
+                        </div>
+                    </div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button class="icon-button" title="{{ __('app.nav.logout') }}" aria-label="{{ __('app.nav.logout') }}">
+                        <button class="icon-button cursor-pointer" title="{{ __('app.nav.logout') }}" aria-label="{{ __('app.nav.logout') }}">
                             <span class="material-symbols-outlined">logout</span>
                         </button>
                     </form>
