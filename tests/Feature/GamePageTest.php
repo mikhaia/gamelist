@@ -99,6 +99,9 @@ class GamePageTest extends TestCase
                 ->assertOk()
                 ->assertSee('href="'.$gameUrl.'"', false)
                 ->assertSee('aria-label="Открыть страницу игры Control Ultimate Edition"', false)
+                ->assertSee('data-game-item', false)
+                ->assertSee('data-game-status-form', false)
+                ->assertSee('data-game-status-select', false)
                 ->assertDontSee('aria-label="Открыть страницу игры Manual Game"', false);
         }
 
@@ -114,6 +117,7 @@ class GamePageTest extends TestCase
         $other = User::factory()->create();
         $list = $user->gameLists()->create([
             'name' => 'Steam', 'slug' => 'steam', 'default_platform' => 'steam',
+            'available_statuses' => ['playing', 'completed'],
         ]);
         $otherList = $other->gameLists()->create([
             'name' => 'Other', 'slug' => 'other', 'default_platform' => 'pc',
@@ -124,8 +128,21 @@ class GamePageTest extends TestCase
             'normalized_title' => 'portal 2',
         ]);
 
+        $this->actingAs($user)->get(route('games.show', $catalogGame))
+            ->assertOk()
+            ->assertSee('name="status"', false)
+            ->assertSee('data-statuses="playing,completed"', false)
+            ->assertSee('<option value="playing"', false)
+            ->assertSee('<option value="completed"', false);
+
         $this->actingAs($user)->post(route('game-library.store', $catalogGame), [
             'game_list_id' => $list->id,
+            'status' => 'want_to_play',
+        ])->assertSessionHasErrors('status');
+
+        $this->actingAs($user)->post(route('game-library.store', $catalogGame), [
+            'game_list_id' => $list->id,
+            'status' => 'completed',
         ])->assertRedirect(route('games.show', $catalogGame));
 
         $this->assertDatabaseHas('games', [
@@ -133,14 +150,16 @@ class GamePageTest extends TestCase
             'catalog_game_id' => $catalogGame->id,
             'title' => 'Portal 2',
             'platform' => 'steam',
-            'status' => 'want_to_play',
+            'status' => 'completed',
         ]);
 
         $this->actingAs($user)->post(route('game-library.store', $catalogGame), [
             'game_list_id' => $list->id,
+            'status' => 'playing',
         ])->assertSessionHasErrors('game_list_id');
         $this->actingAs($user)->post(route('game-library.store', $catalogGame), [
             'game_list_id' => $otherList->id,
+            'status' => 'want_to_play',
         ])->assertSessionHasErrors('game_list_id');
     }
 

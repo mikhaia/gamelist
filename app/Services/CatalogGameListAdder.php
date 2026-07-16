@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\GameStatus;
 use App\Models\CatalogGame;
 use App\Models\Game;
 use App\Models\GameList;
@@ -15,7 +16,7 @@ class CatalogGameListAdder
 {
     public function __construct(private readonly CoverImageService $covers) {}
 
-    public function add(GameList $gameList, CatalogGame $catalogGame): ?Game
+    public function add(GameList $gameList, CatalogGame $catalogGame, ?GameStatus $status = null): ?Game
     {
         if ($this->alreadyExists($gameList, $catalogGame)) {
             return null;
@@ -28,7 +29,7 @@ class CatalogGameListAdder
                 'catalog_game_id' => $catalogGame->id,
                 'title' => $catalogGame->title,
                 'normalized_title' => $catalogGame->normalized_title,
-                'status' => $gameList->defaultStatus(),
+                'status' => $status ?? $gameList->defaultStatus(),
                 'platform' => $gameList->default_platform,
                 'hltb_id' => $catalogGame->hltb_id,
                 'cover_path' => $coverPath,

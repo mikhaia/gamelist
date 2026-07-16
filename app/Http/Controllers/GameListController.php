@@ -53,8 +53,10 @@ class GameListController extends Controller
         $gameList->load('user');
         $totalGames = $gameList->games()->count();
         $selectedStatuses = $this->statuses($request, $gameList);
+        $sort = $request->query('sort') === 'completed_at' ? 'completed_at' : 'added_at';
         $games = $gameList->games()
             ->when($selectedStatuses !== [], fn ($query) => $query->whereIn('status', $selectedStatuses))
+            ->sortedForList($sort)
             ->get();
         $gameList->setRelation('games', $games);
 
@@ -62,6 +64,7 @@ class GameListController extends Controller
             'gameList' => $gameList,
             'statuses' => $gameList->availableStatuses(),
             'selectedStatuses' => $selectedStatuses,
+            'sort' => $sort,
             'totalGames' => $totalGames,
         ]);
     }

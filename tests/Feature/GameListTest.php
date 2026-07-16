@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\GameList;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -76,6 +77,57 @@ class GameListTest extends TestCase
             ->assertSee('Скопировать список (1)')
             ->assertSee('- Playing Game')
             ->assertDontSee('- Completed Game');
+    }
+
+    public function test_private_and_public_lists_can_sort_by_latest_completion_date(): void
+    {
+        $user = User::factory()->create(['login' => 'chrono']);
+        $list = $user->gameLists()->create([
+            'name' => 'Games', 'slug' => 'games', 'default_platform' => 'pc', 'is_public' => true,
+        ]);
+
+        try {
+            Carbon::setTestNow('2026-04-01');
+            $list->games()->create([
+                'title' => 'Incomplete Game', 'normalized_title' => 'incomplete game', 'status' => 'playing', 'platform' => 'pc',
+            ]);
+            Carbon::setTestNow('2026-03-01');
+            $list->games()->create([
+                'title' => 'Added Later', 'normalized_title' => 'added later', 'status' => 'completed', 'platform' => 'pc',
+                'completed_at' => '2026-01-10',
+            ]);
+            Carbon::setTestNow('2026-01-01');
+            $list->games()->create([
+                'title' => 'Completed Later', 'normalized_title' => 'completed later', 'status' => 'completed', 'platform' => 'pc',
+                'completed_at' => '2026-02-20',
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
+
+        $this->actingAs($user)->get(route('lists.show', $list))
+            ->assertOk()
+            ->assertSee('По дате добавления')
+            ->assertSee('По дате прохождения')
+            ->assertSeeInOrder(['Incomplete Game', 'Added Later', 'Completed Later']);
+
+        $sortQuery = ['sort' => 'completed_at'];
+        $this->actingAs($user)->get(route('lists.show', ['gameList' => $list] + $sortQuery))
+            ->assertOk()
+            ->assertSee('name="sort"', false)
+            ->assertSee('value="completed_at" selected', false)
+            ->assertSeeInOrder(['Completed Later', 'Added Later', 'Incomplete Game']);
+
+        $this->get(route('public.lists.show', ['login' => 'chrono', 'slug' => 'games'] + $sortQuery))
+            ->assertOk()
+            ->assertSeeInOrder(['Completed Later', 'Added Later', 'Incomplete Game']);
+
+        $filteredQuery = ['status' => ['completed'], 'sort' => 'completed_at'];
+        $this->actingAs($user)->get(route('lists.show', ['gameList' => $list] + $filteredQuery))
+            ->assertOk()
+            ->assertSee('name="status[]" value="completed"', false)
+            ->assertSee('sort=completed_at', false)
+            ->assertDontSee('Incomplete Game');
     }
 
     public function test_list_cover_is_optimized_and_replaced(): void

@@ -1,4 +1,5 @@
 @php($readonly = $readonly ?? false)
+@php($visibleStatuses = implode(',', $selectedStatuses ?? []))
 
 @if ($gameList->games->isEmpty())
     <div class="panel flex min-h-64 flex-col items-center justify-center text-center">
@@ -11,7 +12,7 @@
     </div>
 @elseif ($gameList->display_mode === 'board')
     @php($boardStatuses = ($selectedStatuses ?? []) === [] ? collect($statuses) : collect($statuses)->filter(fn ($status) => in_array($status->value, $selectedStatuses, true)))
-    <div class="-mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8" data-game-board>
+    <div class="-mx-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8" data-game-board data-game-list-items>
         <div class="flex min-w-max items-start gap-4">
             @foreach ($boardStatuses as $status)
                 @php($columnGames = $gameList->games->filter(fn ($game) => $game->status === $status))
@@ -21,13 +22,13 @@
                             <span class="material-symbols-outlined text-lg">{{ $status->icon() }}</span>
                         </span>
                         <h2 class="min-w-0 flex-1 truncate text-sm font-extrabold">{{ $status->label() }}</h2>
-                        <span class="rounded-full border border-white/8 bg-black/20 px-2.5 py-1 text-[10px] font-bold text-slate-500">{{ $columnGames->count() }}</span>
+                        <span class="rounded-full border border-white/8 bg-black/20 px-2.5 py-1 text-[10px] font-bold text-slate-500" data-board-count>{{ $columnGames->count() }}</span>
                     </header>
 
-                    <div class="space-y-3">
+                    <div class="space-y-3" data-board-games>
                         @forelse ($columnGames as $game)
                             @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
-                            <article class="glass overflow-hidden rounded-2xl p-3" data-board-game>
+                            <article class="glass overflow-hidden rounded-2xl p-3" data-board-game data-game-item data-game-id="{{ $game->id }}" data-game-title="{{ $game->title }}" data-completed-at="{{ $game->completed_at?->format('Y-m-d') }}" data-created-at="{{ $game->created_at?->format('Y-m-d H:i:s.u') }}" data-sort-order="{{ $game->sort_order }}">
                                 <div class="flex gap-3">
                                     @if ($gamePageUrl)
                                         <a href="{{ $gamePageUrl }}" class="grid h-20 w-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950" aria-label="Открыть страницу игры {{ $game->title }}">
@@ -59,18 +60,18 @@
                                     </div>
                                 </div>
 
-                                @if ($game->started_at || $game->completed_at)
-                                    <div class="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t border-white/7 pt-2.5 text-[10px] text-slate-500">
-                                        @if ($game->started_at)<span>Начал {{ $game->started_at->format('d.m.Y') }}</span>@endif
-                                        @if ($game->completed_at)<span>Закончил {{ $game->completed_at->format('d.m.Y') }}</span>@endif
+                                @if ($game->started_at || $game->completed_at || ! $readonly)
+                                    <div class="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t border-white/7 pt-2.5 text-[10px] text-slate-500 {{ $game->started_at || $game->completed_at ? '' : 'hidden' }}" data-game-dates>
+                                        <span class="{{ $game->started_at ? '' : 'hidden' }}" data-game-started-date>Начал <span data-game-date-value>{{ $game->started_at?->format('d.m.Y') }}</span></span>
+                                        <span class="{{ $game->completed_at ? '' : 'hidden' }}" data-game-completed-date>Закончил <span data-game-date-value>{{ $game->completed_at?->format('d.m.Y') }}</span></span>
                                     </div>
                                 @endif
 
                                 @if (! $readonly)
                                     <div class="mt-3 flex items-center gap-2 border-t border-white/7 pt-3">
-                                        <form method="POST" action="{{ route('games.status', $game) }}" class="min-w-0 flex-1">
+                                        <form method="POST" action="{{ route('games.status', $game) }}" class="min-w-0 flex-1" data-game-status-form data-current-status="{{ $game->status->value }}" data-visible-statuses="{{ $visibleStatuses }}">
                                             @csrf @method('PATCH')
-                                            <select name="status" class="w-full truncate rounded-lg border border-white/8 bg-[#111422] px-2 py-1.5 text-[11px] font-semibold text-slate-300" onchange="this.form.submit()" aria-label="Статус {{ $game->title }}">
+                                            <select name="status" class="w-full truncate rounded-lg border border-white/8 bg-[#111422] px-2 py-1.5 text-[11px] font-semibold text-slate-300" aria-label="Статус {{ $game->title }}" data-game-status-select>
                                                 @foreach ($statuses as $availableStatus)<option value="{{ $availableStatus->value }}" @selected($game->status === $availableStatus)>{{ $availableStatus->label() }}</option>@endforeach
                                             </select>
                                         </form>
@@ -79,7 +80,7 @@
                                 @endif
                             </article>
                         @empty
-                            <div class="grid min-h-28 place-items-center rounded-2xl border border-dashed border-white/8 px-4 text-center text-xs text-slate-600">В этой колонке пока нет игр</div>
+                            <div class="grid min-h-28 place-items-center rounded-2xl border border-dashed border-white/8 px-4 text-center text-xs text-slate-600" data-board-empty>В этой колонке пока нет игр</div>
                         @endforelse
                     </div>
                 </section>
@@ -87,10 +88,10 @@
         </div>
     </div>
 @elseif ($gameList->display_mode === 'compact')
-    <div class="glass overflow-hidden rounded-3xl">
+    <div class="glass overflow-hidden rounded-3xl" data-game-list-items>
         @foreach ($gameList->games as $game)
             @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
-            <article class="flex items-center gap-3 border-b border-white/7 p-3 last:border-b-0 sm:gap-4 sm:p-4">
+            <article class="flex items-center gap-3 border-b border-white/7 p-3 last:border-b-0 sm:gap-4 sm:p-4" data-game-item data-game-id="{{ $game->id }}" data-game-title="{{ $game->title }}" data-completed-at="{{ $game->completed_at?->format('Y-m-d') }}" data-created-at="{{ $game->created_at?->format('Y-m-d H:i:s.u') }}" data-sort-order="{{ $game->sort_order }}">
                 @if ($gamePageUrl)
                     <a href="{{ $gamePageUrl }}" class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-900/70 to-cyan-950/60 sm:size-16" aria-label="Открыть страницу игры {{ $game->title }}">
                 @else
@@ -117,16 +118,16 @@
                     <div class="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
                         <span>{{ $game->platform->label() }}</span>
                         @if ($game->main_story_minutes)<span>· {{ $game->formattedTime($game->main_story_minutes) }}</span>@endif
-                        @if ($game->started_at)<span>· Начал {{ $game->started_at->format('d.m.Y') }}</span>@endif
-                        @if ($game->completed_at)<span>· Закончил {{ $game->completed_at->format('d.m.Y') }}</span>@endif
+                        @if ($game->started_at || ! $readonly)<span class="{{ $game->started_at ? '' : 'hidden' }}" data-game-started-date>· Начал <span data-game-date-value>{{ $game->started_at?->format('d.m.Y') }}</span></span>@endif
+                        @if ($game->completed_at || ! $readonly)<span class="{{ $game->completed_at ? '' : 'hidden' }}" data-game-completed-date>· Закончил <span data-game-date-value>{{ $game->completed_at?->format('d.m.Y') }}</span></span>@endif
                     </div>
                 </div>
                 @if ($readonly)
                     <span class="status-chip hidden sm:inline-flex"><span class="material-symbols-outlined text-sm">{{ $game->status->icon() }}</span>{{ $game->status->label() }}</span>
                 @else
-                    <form method="POST" action="{{ route('games.status', $game) }}" class="hidden sm:block">
+                    <form method="POST" action="{{ route('games.status', $game) }}" class="hidden sm:block" data-game-status-form data-current-status="{{ $game->status->value }}" data-visible-statuses="{{ $visibleStatuses }}">
                         @csrf @method('PATCH')
-                        <select name="status" class="rounded-xl border border-white/10 bg-[#111422] px-3 py-2 text-xs font-semibold text-slate-300" onchange="this.form.submit()">
+                        <select name="status" class="rounded-xl border border-white/10 bg-[#111422] px-3 py-2 text-xs font-semibold text-slate-300" aria-label="Статус {{ $game->title }}" data-game-status-select>
                             @foreach ($statuses as $status)<option value="{{ $status->value }}" @selected($game->status === $status)>{{ $status->label() }}</option>@endforeach
                         </select>
                     </form>
@@ -136,10 +137,10 @@
         @endforeach
     </div>
 @else
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
+    <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5" data-game-list-items>
         @foreach ($gameList->games as $game)
             @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
-            <article class="glass group overflow-hidden rounded-2xl transition duration-300 hover:-translate-y-1 hover:border-white/20 sm:rounded-3xl">
+            <article class="glass group overflow-hidden rounded-2xl transition duration-300 hover:-translate-y-1 hover:border-white/20 sm:rounded-3xl" data-game-item data-game-id="{{ $game->id }}" data-game-title="{{ $game->title }}" data-completed-at="{{ $game->completed_at?->format('Y-m-d') }}" data-created-at="{{ $game->created_at?->format('Y-m-d H:i:s.u') }}" data-sort-order="{{ $game->sort_order }}">
                 @if ($gamePageUrl)
                     <a href="{{ $gamePageUrl }}" class="relative block aspect-[3/4] overflow-hidden bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950" aria-label="Открыть страницу игры {{ $game->title }}">
                 @else
@@ -151,8 +152,8 @@
                         <div class="grid h-full place-items-center"><span class="material-symbols-outlined text-5xl text-white/15">sports_esports</span></div>
                     @endif
                     <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0b0d18] to-transparent"></div>
-                    <span class="absolute right-2.5 top-2.5 grid size-8 place-items-center rounded-xl border border-white/10 bg-black/60 text-violet-200 backdrop-blur-lg" title="{{ $game->status->label() }}">
-                        <span class="material-symbols-outlined text-lg">{{ $game->status->icon() }}</span>
+                    <span class="absolute right-2.5 top-2.5 grid size-8 place-items-center rounded-xl border border-white/10 bg-black/60 text-violet-200 backdrop-blur-lg" title="{{ $game->status->label() }}" data-game-status-badge>
+                        <span class="material-symbols-outlined text-lg" data-game-status-icon>{{ $game->status->icon() }}</span>
                     </span>
                 @if ($gamePageUrl)
                     </a>
@@ -171,19 +172,19 @@
                     @if ($game->main_story_minutes)
                         <p class="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400"><span class="material-symbols-outlined text-sm">schedule</span>{{ $game->formattedTime($game->main_story_minutes) }}</p>
                     @endif
-                    @if ($game->started_at || $game->completed_at)
-                        <div class="mt-2 space-y-1 text-[10px] text-slate-500">
-                            @if ($game->started_at)<p class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">play_circle</span>{{ $game->started_at->format('d.m.Y') }}</p>@endif
-                            @if ($game->completed_at)<p class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">flag</span>{{ $game->completed_at->format('d.m.Y') }}</p>@endif
+                    @if ($game->started_at || $game->completed_at || ! $readonly)
+                        <div class="mt-2 space-y-1 text-[10px] text-slate-500 {{ $game->started_at || $game->completed_at ? '' : 'hidden' }}" data-game-dates>
+                            <p class="flex items-center gap-1 {{ $game->started_at ? '' : 'hidden' }}" data-game-started-date><span class="material-symbols-outlined text-xs">play_circle</span><span data-game-date-value>{{ $game->started_at?->format('d.m.Y') }}</span></p>
+                            <p class="flex items-center gap-1 {{ $game->completed_at ? '' : 'hidden' }}" data-game-completed-date><span class="material-symbols-outlined text-xs">flag</span><span data-game-date-value>{{ $game->completed_at?->format('d.m.Y') }}</span></p>
                         </div>
                     @endif
                     @if ($readonly)
                         <span class="status-chip mt-3 max-w-full"><span class="material-symbols-outlined text-sm">{{ $game->status->icon() }}</span><span class="truncate">{{ $game->status->label() }}</span></span>
                     @else
                         <div class="mt-3 flex items-center gap-2 border-t border-white/7 pt-3">
-                            <form method="POST" action="{{ route('games.status', $game) }}" class="min-w-0 flex-1">
+                            <form method="POST" action="{{ route('games.status', $game) }}" class="min-w-0 flex-1" data-game-status-form data-current-status="{{ $game->status->value }}" data-visible-statuses="{{ $visibleStatuses }}">
                                 @csrf @method('PATCH')
-                                <select name="status" class="w-full truncate rounded-lg border border-white/8 bg-[#111422] px-2 py-1.5 text-[11px] font-semibold text-slate-300" onchange="this.form.submit()">
+                                <select name="status" class="w-full truncate rounded-lg border border-white/8 bg-[#111422] px-2 py-1.5 text-[11px] font-semibold text-slate-300" aria-label="Статус {{ $game->title }}" data-game-status-select>
                                     @foreach ($statuses as $status)<option value="{{ $status->value }}" @selected($game->status === $status)>{{ $status->label() }}</option>@endforeach
                                 </select>
                             </form>
@@ -193,5 +194,13 @@
                 </div>
             </article>
         @endforeach
+    </div>
+@endif
+
+@if (! $gameList->games->isEmpty())
+    <div class="panel hidden min-h-64 flex-col items-center justify-center text-center" data-game-list-client-empty>
+        <span class="material-symbols-outlined text-6xl text-violet-400/40">filter_alt_off</span>
+        <h2 class="mt-4 text-lg font-extrabold">По выбранным статусам игр нет</h2>
+        <p class="muted mt-2">Измените фильтр, чтобы увидеть другие игры.</p>
     </div>
 @endif

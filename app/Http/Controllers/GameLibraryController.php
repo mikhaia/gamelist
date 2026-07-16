@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\GameStatus;
 use App\Models\CatalogGame;
 use App\Models\GameList;
 use App\Services\CatalogGameListAdder;
@@ -22,10 +23,18 @@ class GameLibraryController extends Controller
                 'integer',
                 Rule::exists('game_lists', 'id')->where('user_id', $request->user()->id),
             ],
+            'status' => ['required', Rule::enum(GameStatus::class)],
         ]);
         $gameList = GameList::query()->findOrFail($validated['game_list_id']);
+        $status = GameStatus::from($validated['status']);
 
-        if (! $this->games->add($gameList, $catalogGame)) {
+        if (! in_array($status->value, $gameList->availableStatusValues(), true)) {
+            throw ValidationException::withMessages([
+                'status' => __('app.errors.status_not_available'),
+            ]);
+        }
+
+        if (! $this->games->add($gameList, $catalogGame, $status)) {
             throw ValidationException::withMessages([
                 'game_list_id' => __('app.errors.game_duplicate'),
             ]);

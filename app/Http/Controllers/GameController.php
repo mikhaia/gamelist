@@ -8,6 +8,7 @@ use App\Models\GameList;
 use App\Services\CatalogGameCache;
 use App\Services\CoverImageService;
 use App\Services\GameTitleNormalizer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -68,13 +69,26 @@ class GameController extends Controller
         return redirect()->route('lists.show', $game->gameList)->with('success', __('app.messages.game_updated'));
     }
 
-    public function status(Request $request, Game $game): RedirectResponse
+    public function status(Request $request, Game $game): JsonResponse|RedirectResponse
     {
         $this->authorizeGame($request, $game);
         $validated = $request->validate([
             'status' => ['required', Rule::in($game->gameList->availableStatusValues())],
         ]);
         $game->update($validated);
+
+        if ($request->expectsJson()) {
+            $game->refresh();
+
+            return response()->json([
+                'message' => __('app.messages.status_updated'),
+                'status' => $game->status->value,
+                'label' => $game->status->label(),
+                'icon' => $game->status->icon(),
+                'started_at' => $game->started_at?->format('Y-m-d'),
+                'completed_at' => $game->completed_at?->format('Y-m-d'),
+            ]);
+        }
 
         return back()->with('success', __('app.messages.status_updated'));
     }

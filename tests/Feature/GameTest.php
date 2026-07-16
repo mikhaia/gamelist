@@ -86,8 +86,13 @@ class GameTest extends TestCase
 
         $this->travelTo(Carbon::parse('2026-07-20 12:00:00'));
         $this->actingAs($user)
-            ->patch(route('games.status', $game), ['status' => 'completed'])
-            ->assertRedirect();
+            ->patchJson(route('games.status', $game), ['status' => 'completed'])
+            ->assertOk()
+            ->assertJsonPath('status', 'completed')
+            ->assertJsonPath('label', 'Пройдена')
+            ->assertJsonPath('icon', 'trophy')
+            ->assertJsonPath('started_at', '2026-07-15')
+            ->assertJsonPath('completed_at', '2026-07-20');
 
         $game->refresh();
         $this->assertSame('2026-07-15', $game->started_at->format('Y-m-d'));

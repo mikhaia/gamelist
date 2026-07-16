@@ -20,8 +20,10 @@ class PublicListController extends Controller
         $totalGames = $gameList->games()->count();
         $allowed = $gameList->availableStatusValues();
         $selectedStatuses = array_values(array_intersect((array) $request->query('status', []), $allowed));
+        $sort = $request->query('sort') === 'completed_at' ? 'completed_at' : 'added_at';
         $games = $gameList->games()
             ->when($selectedStatuses !== [], fn ($query) => $query->whereIn('status', $selectedStatuses))
+            ->sortedForList($sort)
             ->get();
         $gameList->setRelation('games', $games);
 
@@ -29,6 +31,7 @@ class PublicListController extends Controller
             'gameList' => $gameList,
             'statuses' => $gameList->availableStatuses(),
             'selectedStatuses' => $selectedStatuses,
+            'sort' => $sort,
             'totalGames' => $totalGames,
             'isFriend' => $request->user()?->isFriendsWith($gameList->user) ?? false,
         ]);

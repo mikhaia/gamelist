@@ -26,6 +26,6 @@ return [
         'slug' => 'адрес списка', 'games_text' => 'список игр', 'cover' => 'обложка', 'avatar' => 'аватар',
         'profile_cover' => 'обложка профиля', 'game_ids' => 'любимые игры', 'code' => 'код',
         'started_at' => 'начало игры', 'completed_at' => 'окончание игры', 'current_password' => 'текущий пароль',
-        'rating' => 'оценка', 'body' => 'мнение', 'game_list_id' => 'список игр',
+        'rating' => 'оценка', 'body' => 'мнение', 'game_list_id' => 'список игр', 'status' => 'статус',
     ],
 ];

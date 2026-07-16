@@ -389,6 +389,186 @@ document.addEventListener('submit', async (event) => {
     }
 });
 
+function compareGameItems(first, second) {
+    const sort = new URLSearchParams(window.location.search).get('sort');
+
+    if (sort === 'completed_at') {
+        const completedDifference = String(second.dataset.completedAt || '')
+            .localeCompare(String(first.dataset.completedAt || ''));
+        if (completedDifference !== 0) return completedDifference;
+    } else {
+        const sortOrderDifference = Number(first.dataset.sortOrder || 0) - Number(second.dataset.sortOrder || 0);
+        if (sortOrderDifference !== 0) return sortOrderDifference;
+    }
+
+    const createdDifference = String(second.dataset.createdAt || '')
+        .localeCompare(String(first.dataset.createdAt || ''));
+    if (createdDifference !== 0) return createdDifference;
+
+    return Number(second.dataset.gameId || 0) - Number(first.dataset.gameId || 0);
+}
+
+function sortGameItems(container) {
+    if (!container) return;
+
+    Array.from(container.children)
+        .filter((item) => item.matches('[data-game-item]'))
+        .sort(compareGameItems)
+        .forEach((item) => container.appendChild(item));
+}
+
+function updateBoardColumn(section) {
+    if (!section) return;
+
+    const container = section.querySelector('[data-board-games]');
+    if (!container) return;
+
+    const count = container.querySelectorAll(':scope > [data-game-item]').length;
+    const countBadge = section.querySelector('[data-board-count]');
+    if (countBadge) countBadge.textContent = String(count);
+
+    let empty = container.querySelector('[data-board-empty]');
+    if (!empty && count === 0) {
+        empty = document.createElement('div');
+        empty.className = 'grid min-h-28 place-items-center rounded-2xl border border-dashed border-white/8 px-4 text-center text-xs text-slate-600';
+        empty.dataset.boardEmpty = '';
+        empty.textContent = 'В этой колонке пока нет игр';
+        container.appendChild(empty);
+    }
+
+    empty?.classList.toggle('hidden', count > 0);
+}
+
+function updateVisibleGameList() {
+    const items = Array.from(document.querySelectorAll('[data-game-item]'));
+    const count = items.length;
+    const countBadge = document.querySelector('[data-list-game-count]');
+    const copyButton = document.querySelector('[data-list-copy]');
+
+    if (countBadge) {
+        const total = Number(countBadge.dataset.totalGames || count);
+        countBadge.textContent = countBadge.dataset.filtered === 'true'
+            ? `${count} из ${total} игр`
+            : `${total} игр`;
+    }
+
+    if (copyButton) {
+        copyButton.dataset.copy = items.map((item) => `- ${item.dataset.gameTitle}`).join('\n');
+        copyButton.disabled = count === 0;
+        const label = copyButton.querySelector('[data-copy-label]');
+        if (label) label.textContent = `Скопировать список (${count})`;
+    }
+
+    if (count === 0) {
+        document.querySelector('[data-game-list-items]')?.classList.add('hidden');
+        const empty = document.querySelector('[data-game-list-client-empty]');
+        empty?.classList.remove('hidden');
+        empty?.classList.add('flex');
+    }
+}
+
+function formatGameDate(date) {
+    return date ? date.split('-').reverse().join('.') : '';
+}
+
+function updateGameDates(item, data) {
+    for (const [selector, value] of [
+        ['[data-game-started-date]', data.started_at],
+        ['[data-game-completed-date]', data.completed_at],
+    ]) {
+        const date = item.querySelector(selector);
+        if (!date) continue;
+        date.classList.toggle('hidden', !value);
+        const dateValue = date.querySelector('[data-game-date-value]');
+        if (dateValue) dateValue.textContent = formatGameDate(value);
+    }
+
+    item.querySelector('[data-game-dates]')?.classList.toggle(
+        'hidden',
+        !data.started_at && !data.completed_at,
+    );
+}
+
+function updateGameStatusItem(form, data) {
+    const item = form.closest('[data-game-item]');
+    if (!item) return;
+
+    item.dataset.completedAt = data.completed_at || '';
+
+    const badge = item.querySelector('[data-game-status-badge]');
+    if (badge) badge.title = data.label;
+    const icon = item.querySelector('[data-game-status-icon]');
+    if (icon) icon.textContent = data.icon;
+    updateGameDates(item, data);
+
+    const visibleStatuses = String(form.dataset.visibleStatuses || '').split(',').filter(Boolean);
+    const previousColumn = item.closest('[data-board-status]');
+
+    if (visibleStatuses.length > 0 && !visibleStatuses.includes(data.status)) {
+        item.remove();
+        updateBoardColumn(previousColumn);
+        updateVisibleGameList();
+        return;
+    }
+
+    const targetColumn = Array.from(document.querySelectorAll('[data-board-status]'))
+        .find((section) => section.dataset.boardStatus === data.status);
+    if (targetColumn && targetColumn !== previousColumn) {
+        const targetContainer = targetColumn.querySelector('[data-board-games]');
+        targetContainer?.appendChild(item);
+        sortGameItems(targetContainer);
+        updateBoardColumn(previousColumn);
+        updateBoardColumn(targetColumn);
+    } else if (targetColumn) {
+        sortGameItems(targetColumn.querySelector('[data-board-games]'));
+        updateBoardColumn(targetColumn);
+    } else {
+        sortGameItems(item.parentElement);
+    }
+
+    updateVisibleGameList();
+}
+
+document.addEventListener('change', async (event) => {
+    const select = event.target.closest('[data-game-status-select]');
+    if (!select) return;
+
+    const form = select.closest('[data-game-status-form]');
+    const previousStatus = form.dataset.currentStatus;
+    const initialTitle = select.title;
+    select.disabled = true;
+    select.setAttribute('aria-busy', 'true');
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+        if (!response.ok) throw new Error('Status update failed');
+
+        const data = await response.json();
+        form.dataset.currentStatus = data.status;
+        updateGameStatusItem(form, data);
+        select.classList.add('border-emerald-400/60');
+        window.setTimeout(() => select.classList.remove('border-emerald-400/60'), 900);
+    } catch {
+        select.value = previousStatus;
+        select.title = 'Не удалось изменить статус. Попробуйте ещё раз.';
+        select.classList.add('border-red-400/60');
+        window.setTimeout(() => {
+            select.title = initialTitle;
+            select.classList.remove('border-red-400/60');
+        }, 1800);
+    } finally {
+        select.disabled = false;
+        select.removeAttribute('aria-busy');
+    }
+});
+
 document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
 
@@ -476,6 +656,32 @@ function initializeCatalogBrowser() {
     const browser = document.querySelector('[data-catalog-browser]');
     if (browser?.dataset.query) runCatalogBrowserSearch(browser.dataset.query, false);
 }
+
+function updateGameLibraryStatusOptions(listSelect) {
+    const form = listSelect.closest('[data-game-library-add]');
+    const statusSelect = form?.querySelector('[data-game-library-status]');
+    const selectedList = listSelect.selectedOptions[0];
+    if (!statusSelect || !selectedList) return;
+
+    const statuses = selectedList.dataset.statuses.split(',').filter(Boolean);
+    const labels = JSON.parse(form.dataset.statusLabels || '{}');
+    const selectedStatus = statuses.includes(statusSelect.value)
+        ? statusSelect.value
+        : selectedList.dataset.defaultStatus;
+
+    statusSelect.replaceChildren(...statuses.map((status) => {
+        const option = document.createElement('option');
+        option.value = status;
+        option.textContent = labels[status] || status;
+        option.selected = status === selectedStatus;
+        return option;
+    }));
+}
+
+document.addEventListener('change', (event) => {
+    const listSelect = event.target.closest('[data-game-library-list]');
+    if (listSelect) updateGameLibraryStatusOptions(listSelect);
+});
 
 function normalizeFavoriteSearch(value) {
     return String(value)

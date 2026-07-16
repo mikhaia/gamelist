@@ -14,7 +14,7 @@
         <div class="min-w-0">
             <div class="mb-3 flex flex-wrap items-center gap-2">
                 <span class="status-chip"><span class="material-symbols-outlined text-sm">{{ $gameList->is_public ? 'public' : 'lock' }}</span>{{ $gameList->is_public ? 'Публичный список' : 'Личный список' }}</span>
-                <span class="status-chip">{{ $selectedStatuses === [] ? $totalGames : $gameList->games->count().' из '.$totalGames }} игр</span>
+                <span class="status-chip" data-list-game-count data-total-games="{{ $totalGames }}" data-filtered="{{ $selectedStatuses === [] ? 'false' : 'true' }}">{{ $selectedStatuses === [] ? $totalGames : $gameList->games->count().' из '.$totalGames }} игр</span>
             </div>
             <h1 class="page-title break-words">{{ $gameList->name }}</h1>
             @if ($gameList->description)<p class="muted mt-3 max-w-3xl">{{ $gameList->description }}</p>@endif

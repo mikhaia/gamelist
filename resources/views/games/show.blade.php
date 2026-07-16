@@ -36,7 +36,9 @@
 
         <div class="mt-7 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
             @foreach (\App\Enums\GameStatus::cases() as $status)
-                @php($count = $statusCounts[$status->value])
+                @php
+                    $count = $statusCounts[$status->value];
+                @endphp
                 <div class="rounded-2xl border p-3 {{ $count ? 'border-violet-400/20 bg-violet-500/10' : 'border-white/7 bg-white/[.025]' }}" data-status-count="{{ $status->value }}" data-count="{{ $count }}">
                     <div class="flex items-center gap-2">
                         <span class="material-symbols-outlined text-lg {{ $count ? 'text-violet-300' : 'text-slate-600' }}">{{ $status->icon() }}</span>
@@ -61,18 +63,32 @@
                         @elseif ($availableLists->isEmpty())
                             <p class="muted mt-1">Игра уже добавлена во все ваши списки.</p>
                         @else
-                            <form method="POST" action="{{ route('game-library.store', $catalogGame) }}" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start">
+                            @php
+                                $selectedList = $availableLists->first(fn ($list) => (string) $list->id === (string) old('game_list_id')) ?? $availableLists->first();
+                                $selectedStatus = old('status', $selectedList->defaultStatus()->value);
+                                $statusLabels = collect(\App\Enums\GameStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()]);
+                            @endphp
+                            <form method="POST" action="{{ route('game-library.store', $catalogGame) }}" class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:items-end" data-game-library-add data-status-labels='@json($statusLabels)'>
                                 @csrf
-                                <div class="min-w-0 flex-1">
-                                    <label class="sr-only" for="game_list_id">Выберите список</label>
-                                    <select class="field mt-0" id="game_list_id" name="game_list_id" required>
+                                <div class="min-w-0">
+                                    <label class="label" for="game_list_id">Список</label>
+                                    <select class="field" id="game_list_id" name="game_list_id" required data-game-library-list>
                                         @foreach ($availableLists as $list)
-                                            <option value="{{ $list->id }}" @selected((string) old('game_list_id') === (string) $list->id)>{{ $list->name }}</option>
+                                            <option value="{{ $list->id }}" data-statuses="{{ implode(',', $list->availableStatusValues()) }}" data-default-status="{{ $list->defaultStatus()->value }}" @selected($selectedList->is($list))>{{ $list->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('game_list_id') <p class="field-error">{{ $message }}</p> @enderror
                                 </div>
-                                <button class="button button-primary shrink-0"><span class="material-symbols-outlined">add</span> Добавить</button>
+                                <div class="min-w-0">
+                                    <label class="label" for="game_status">Статус</label>
+                                    <select class="field" id="game_status" name="status" required data-game-library-status>
+                                        @foreach ($selectedList->availableStatuses() as $status)
+                                            <option value="{{ $status->value }}" @selected($selectedStatus === $status->value)>{{ $status->label() }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('status') <p class="field-error">{{ $message }}</p> @enderror
+                                </div>
+                                <button class="button button-primary shrink-0 sm:col-span-2 xl:col-span-1"><span class="material-symbols-outlined">add</span> Добавить</button>
                             </form>
                             @if ($addedListsCount)
                                 <p class="mt-3 text-[11px] text-slate-500">Уже находится в ваших списках: {{ $addedListsCount }}.</p>
@@ -101,7 +117,9 @@
         </div>
 
         @auth
-            @php($currentRating = old('rating', $userReview?->rating))
+            @php
+                $currentRating = old('rating', $userReview?->rating);
+            @endphp
             <form method="POST" action="{{ route('game-reviews.update', $catalogGame) }}" class="mt-6 space-y-5">
                 @csrf @method('PUT')
                 <fieldset>

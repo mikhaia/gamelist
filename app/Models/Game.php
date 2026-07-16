@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\GameStatus;
 use App\Enums\Platform;
 use Carbon\CarbonInterval;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -55,6 +56,19 @@ class Game extends Model
     public function catalogGame(): BelongsTo
     {
         return $this->belongsTo(CatalogGame::class);
+    }
+
+    public function scopeSortedForList(Builder $query, string $sort): Builder
+    {
+        if ($sort !== 'completed_at') {
+            return $query;
+        }
+
+        return $query->reorder()
+            ->orderByRaw('completed_at IS NULL')
+            ->orderByDesc('completed_at')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
     }
 
     public function getCoverUrlAttribute(): ?string
