@@ -44,20 +44,25 @@
             @php($featuredStatuses = [__('app.statuses.want_to_play'), __('app.statuses.playing'), __('app.statuses.completed')])
             <div class="grid grid-cols-3 gap-3">
                 @foreach ($featuredGames as $featuredGame)
-                    <div class="overflow-hidden rounded-2xl border border-white/10 bg-black/20" data-featured-game>
+                    <a
+                        href="{{ route('games.show', $featuredGame) }}"
+                        class="group overflow-hidden rounded-2xl border border-white/10 bg-black/20 transition duration-300 hover:-translate-y-1 hover:border-violet-300/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400"
+                        aria-label="Открыть страницу игры {{ $featuredGame->title }}"
+                        data-featured-game
+                    >
                         <div class="aspect-[3/4] overflow-hidden bg-gradient-to-br from-violet-950 to-cyan-950">
                             <img
                                 src="{{ $featuredGame->cover_url }}"
                                 alt="Обложка {{ $featuredGame->title }}"
-                                class="h-full w-full object-cover"
+                                class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                                 decoding="async"
                             >
                         </div>
                         <div class="p-3">
-                            <p class="truncate text-xs font-bold" title="{{ $featuredGame->title }}">{{ $featuredGame->title }}</p>
+                            <p class="truncate text-xs font-bold transition group-hover:text-violet-200" title="{{ $featuredGame->title }}">{{ $featuredGame->title }}</p>
                             <p class="mt-1 truncate text-[10px] text-slate-500">{{ $featuredStatuses[$loop->index] }}</p>
                         </div>
-                    </div>
+                    </a>
                 @endforeach
 
                 @for ($placeholder = $featuredGames->count(); $placeholder < 3; $placeholder++)
