@@ -26,6 +26,14 @@ return [
         'want_to_play' => 'Хочу сыграть', 'installed' => 'Установлено', 'playing' => 'Играю',
         'completed' => 'Пройдено', 'dropped' => 'Брошено',
     ],
+    'activity' => [
+        'online' => 'Онлайн',
+        'unknown' => 'Последняя активность неизвестна',
+        'last_seen' => 'Последняя активность: :time назад',
+        'hours' => ':count час|:count часа|:count часов',
+        'days' => ':count день|:count дня|:count дней',
+        'months' => ':count месяц|:count месяца|:count месяцев',
+    ],
     'counts' => [
         'friends' => '{1} друг|[2,4] друга|[5,*] друзей',
         'public_lists' => '{1} публичный список|[2,4] публичных списка|[5,*] публичных списков',

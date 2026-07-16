@@ -83,4 +83,19 @@ class InactiveReminderTest extends TestCase
         $this->assertTrue($user->last_seen_at->equalTo(now()));
         $this->assertNull($user->inactive_reminder_sent_at);
     }
+
+    public function test_every_authenticated_page_view_updates_last_seen_time(): void
+    {
+        $this->travelTo(Carbon::parse('2026-07-17 12:00:00'));
+        $user = User::factory()->create([
+            'login' => 'active_player',
+            'last_seen_at' => now()->subMinutes(5),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('profiles.show', $user->login))
+            ->assertOk();
+
+        $this->assertTrue($user->fresh()->last_seen_at->equalTo(now()));
+    }
 }

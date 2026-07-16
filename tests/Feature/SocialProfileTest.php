@@ -15,6 +15,35 @@ class SocialProfileTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_profile_card_shows_online_and_relative_last_activity(): void
+    {
+        $this->travelTo(Carbon::parse('2026-07-17 12:00:00'));
+        $profile = User::factory()->create([
+            'login' => 'activity_player',
+            'last_seen_at' => now()->subMinutes(59),
+        ]);
+
+        $this->get(route('profiles.show', $profile->login))
+            ->assertOk()
+            ->assertSeeText('Онлайн')
+            ->assertDontSeeText('Игровой профиль');
+
+        $profile->forceFill(['last_seen_at' => now()->subHours(21)])->saveQuietly();
+        $this->get(route('profiles.show', $profile->login))
+            ->assertOk()
+            ->assertSeeText('Последняя активность: 21 час назад');
+
+        $profile->forceFill(['last_seen_at' => now()->subDays(5)])->saveQuietly();
+        $this->get(route('profiles.show', $profile->login))
+            ->assertOk()
+            ->assertSeeText('Последняя активность: 5 дней назад');
+
+        $profile->forceFill(['last_seen_at' => now()->subDays(60)])->saveQuietly();
+        $this->get(route('profiles.show', $profile->login))
+            ->assertOk()
+            ->assertSeeText('Последняя активность: 2 месяца назад');
+    }
+
     public function test_profile_shows_three_recent_public_game_status_columns(): void
     {
         $profile = User::factory()->create(['login' => 'chrono']);

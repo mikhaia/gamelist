@@ -64,6 +64,34 @@ class User extends Authenticatable
         return $this->friends()->whereKey($user->getKey())->exists();
     }
 
+    public function isOnline(): bool
+    {
+        return $this->last_seen_at !== null
+            && $this->last_seen_at->greaterThan(now()->subHour());
+    }
+
+    public function activityLabel(): string
+    {
+        if ($this->last_seen_at === null) {
+            return __('app.activity.unknown');
+        }
+
+        $elapsedSeconds = max(0, now()->getTimestamp() - $this->last_seen_at->getTimestamp());
+        if ($elapsedSeconds < 3600) {
+            return __('app.activity.online');
+        }
+
+        [$unit, $count] = match (true) {
+            $elapsedSeconds < 86400 => ['hours', intdiv($elapsedSeconds, 3600)],
+            $elapsedSeconds < 2592000 => ['days', intdiv($elapsedSeconds, 86400)],
+            default => ['months', intdiv($elapsedSeconds, 2592000)],
+        };
+
+        return __('app.activity.last_seen', [
+            'time' => trans_choice("app.activity.{$unit}", max(1, $count), ['count' => max(1, $count)]),
+        ]);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

@@ -17,7 +17,10 @@
                     <a href="{{ route('profiles.show', $user->login) }}" class="text-xl font-extrabold tracking-tight text-white transition hover:text-violet-200 {{ $compact ? '' : 'sm:text-3xl' }}">
                         {{ '@'.$user->login }}
                     </a>
-                    <p class="mt-1 text-xs font-semibold text-slate-400">Игровой профиль</p>
+                    <p class="mt-1 flex items-center gap-1.5 text-xs font-semibold {{ $user->isOnline() ? 'text-emerald-300' : 'text-slate-400' }}" data-profile-activity>
+                        @if ($user->isOnline())<span class="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,.8)]"></span>@endif
+                        {{ $user->activityLabel() }}
+                    </p>
                 </div>
                 <x-friend-button :user="$user" :is-friend="$isFriend" compact />
             </div>

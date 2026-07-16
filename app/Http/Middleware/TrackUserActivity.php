@@ -13,11 +13,7 @@ class TrackUserActivity
     {
         $user = $request->user();
 
-        if ($user && (
-            $user->last_seen_at === null
-            || $user->last_seen_at->lt(now()->subMinutes(15))
-            || $user->inactive_reminder_sent_at !== null
-        )) {
+        if ($user) {
             $user->forceFill([
                 'last_seen_at' => now(),
                 'inactive_reminder_sent_at' => null,

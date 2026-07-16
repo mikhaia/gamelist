@@ -20,7 +20,6 @@ use App\Http\Controllers\ProfileFavoriteController;
 use App\Http\Controllers\PublicListController;
 use App\Http\Controllers\PublicProfileController;
 use App\Http\Controllers\SettingsController;
-use App\Http\Middleware\TrackUserActivity;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -43,7 +42,7 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/reset-password', [OtpPasswordResetController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 });
 
-Route::middleware(['auth', TrackUserActivity::class])->group(function (): void {
+Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/history', HistoryController::class)->name('history.index');
     Route::get('/friends', [FriendController::class, 'index'])->name('friends.index');
