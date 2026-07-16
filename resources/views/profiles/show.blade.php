@@ -37,7 +37,7 @@
     @endif
 
     @if ($isOwner)
-        <form method="POST" action="{{ route('profile.favorites.update') }}" class="panel mt-4" data-favorite-picker>
+        <form method="POST" action="{{ route('profile.favorites.update') }}" class="panel relative z-30 mt-4" data-favorite-picker>
             @csrf @method('PATCH')
             <div class="hidden" data-favorite-game-source aria-hidden="true">
                 @foreach ($availableGames as $game)
@@ -72,7 +72,7 @@
                                 <span class="material-symbols-outlined text-base">close</span>
                             </button>
                         </div>
-                        <div id="favorite_game_results_{{ $slot }}" class="absolute right-0 left-0 z-40 mt-2 hidden max-h-72 overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#0b0e1a] p-1.5 shadow-2xl shadow-black/50" role="listbox" data-favorite-results></div>
+                        <div id="favorite_game_results_{{ $slot }}" class="absolute right-0 left-0 z-50 mt-2 hidden max-h-72 overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#0b0e1a] p-1.5 shadow-2xl shadow-black/50" role="listbox" data-favorite-results></div>
                     </div>
                 @endfor
                 <button class="button button-primary shrink-0"><span class="material-symbols-outlined">save</span> Сохранить</button>

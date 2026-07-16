@@ -1,0 +1,204 @@
+@extends('layouts.app')
+
+@section('title', $catalogGame->title)
+
+@section('content')
+<section class="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-8" data-game-page="{{ $catalogGame->id }}">
+    <div class="mx-auto w-full max-w-72 lg:mx-0">
+        <div class="glass aspect-[3/4] overflow-hidden rounded-3xl">
+            @if ($coverUrl)
+                <img src="{{ $coverUrl }}" alt="Обложка {{ $catalogGame->title }}" class="h-full w-full object-cover">
+            @else
+                <div class="grid h-full place-items-center bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950">
+                    <span class="material-symbols-outlined text-7xl text-white/15">sports_esports</span>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <div class="min-w-0">
+        <span class="eyebrow"><span class="material-symbols-outlined">stadia_controller</span> Страница игры</span>
+        <h1 class="page-title max-w-4xl">{{ $catalogGame->title }}</h1>
+
+        <div class="mt-5 flex flex-wrap gap-2">
+            @if ($catalogGame->main_story_minutes)
+                <span class="status-chip"><span class="material-symbols-outlined text-sm">schedule</span>Сюжет: {{ round($catalogGame->main_story_minutes / 60) }} ч</span>
+            @endif
+            @if ($catalogGame->completionist_minutes)
+                <span class="status-chip"><span class="material-symbols-outlined text-sm">workspace_premium</span>100%: {{ round($catalogGame->completionist_minutes / 60) }} ч</span>
+            @endif
+            <span class="status-chip"><span class="material-symbols-outlined text-sm">playlist_add</span>{{ $totalAdditions }} {{ trans_choice('app.counts.additions', $totalAdditions) }}</span>
+            <span class="status-chip border-amber-300/20 bg-amber-400/10 text-amber-200">
+                <span class="material-symbols-outlined text-sm">workspace_premium</span>
+                {{ $ratingAverage !== null ? number_format((float) $ratingAverage, 1, ',', ' ').' / 10' : 'Нет оценок' }}
+                @if ($ratingCount)<span class="text-amber-100/50">· {{ $ratingCount }}</span>@endif
+            </span>
+        </div>
+
+        <div class="mt-7">
+            <p class="text-xs font-bold uppercase tracking-[.15em] text-slate-500">Добавления по статусам</p>
+            <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+                @foreach (\App\Enums\GameStatus::cases() as $status)
+                    @php($count = $statusCounts[$status->value])
+                    <div class="rounded-2xl border p-3 {{ $count ? 'border-violet-400/20 bg-violet-500/10' : 'border-white/7 bg-white/[.025]' }}" data-status-count="{{ $status->value }}" data-count="{{ $count }}">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-lg {{ $count ? 'text-violet-300' : 'text-slate-600' }}">{{ $status->icon() }}</span>
+                            <strong class="text-lg text-white">{{ $count }}</strong>
+                        </div>
+                        <p class="mt-1 truncate text-[11px] font-semibold {{ $count ? 'text-slate-300' : 'text-slate-600' }}">{{ $status->label() }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="panel mt-6">
+            <div class="flex items-start gap-3">
+                <span class="grid size-10 shrink-0 place-items-center rounded-xl border border-violet-400/20 bg-violet-500/10 text-violet-300">
+                    <span class="material-symbols-outlined">playlist_add</span>
+                </span>
+                <div class="min-w-0 flex-1">
+                    <h2 class="font-extrabold text-white">Добавить в свой список</h2>
+                    @auth
+                        @if ($userLists->isEmpty())
+                            <p class="muted mt-1">Сначала создайте игровой список.</p>
+                            <a href="{{ route('lists.create') }}" class="button button-secondary button-sm mt-4"><span class="material-symbols-outlined">add</span> Создать список</a>
+                        @elseif ($availableLists->isEmpty())
+                            <p class="muted mt-1">Игра уже добавлена во все ваши списки.</p>
+                        @else
+                            <form method="POST" action="{{ route('game-library.store', $catalogGame) }}" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start">
+                                @csrf
+                                <div class="min-w-0 flex-1">
+                                    <label class="sr-only" for="game_list_id">Выберите список</label>
+                                    <select class="field mt-0" id="game_list_id" name="game_list_id" required>
+                                        @foreach ($availableLists as $list)
+                                            <option value="{{ $list->id }}" @selected((string) old('game_list_id') === (string) $list->id)>{{ $list->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('game_list_id') <p class="field-error">{{ $message }}</p> @enderror
+                                </div>
+                                <button class="button button-primary shrink-0"><span class="material-symbols-outlined">add</span> Добавить</button>
+                            </form>
+                            @if ($addedListsCount)
+                                <p class="mt-3 text-[11px] text-slate-500">Уже находится в ваших списках: {{ $addedListsCount }}.</p>
+                            @endif
+                        @endif
+                    @else
+                        <p class="muted mt-1">Войдите, чтобы добавить игру в один из своих списков.</p>
+                        <a href="{{ route('login') }}" class="button button-secondary button-sm mt-4"><span class="material-symbols-outlined">login</span> Войти</a>
+                    @endauth
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div class="panel">
+        <div class="flex items-center gap-3">
+            <span class="grid size-10 place-items-center rounded-xl border border-amber-300/20 bg-amber-400/10 text-amber-200">
+                <span class="material-symbols-outlined">edit</span>
+            </span>
+            <div>
+                <h2 class="text-xl font-extrabold">Ваша оценка и мнение</h2>
+                <p class="mt-1 text-xs text-slate-500">Оценка — от 1 до 10, текст поддерживает Markdown.</p>
+            </div>
+        </div>
+
+        @auth
+            @php($currentRating = old('rating', $userReview?->rating))
+            <form method="POST" action="{{ route('game-reviews.update', $catalogGame) }}" class="mt-6 space-y-5">
+                @csrf @method('PUT')
+                <fieldset>
+                    <legend class="label">Оценка</legend>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="rating" value="" class="peer sr-only" @checked(blank($currentRating))>
+                            <span class="grid min-h-10 place-items-center rounded-xl border border-white/10 px-3 text-xs font-bold text-slate-500 transition peer-checked:border-white/25 peer-checked:bg-white/10 peer-checked:text-white">Без оценки</span>
+                        </label>
+                        @for ($rating = 1; $rating <= 10; $rating++)
+                            <label class="cursor-pointer">
+                                <input type="radio" name="rating" value="{{ $rating }}" class="peer sr-only" @checked((string) $currentRating === (string) $rating)>
+                                <span class="grid size-10 place-items-center rounded-xl border border-white/10 text-sm font-extrabold text-slate-400 transition hover:border-amber-300/30 hover:text-amber-200 peer-checked:border-amber-300/40 peer-checked:bg-amber-400/15 peer-checked:text-amber-100">{{ $rating }}</span>
+                            </label>
+                        @endfor
+                    </div>
+                    @error('rating') <p class="field-error">{{ $message }}</p> @enderror
+                </fieldset>
+
+                <div data-markdown-editor data-preview-url="{{ route('game-reviews.preview') }}">
+                    <div class="flex items-center gap-1 border-b border-white/10">
+                        <button type="button" class="border-b-2 border-violet-400 px-3 py-2 text-xs font-bold text-white" data-markdown-write>Написать</button>
+                        <button type="button" class="border-b-2 border-transparent px-3 py-2 text-xs font-bold text-slate-500 transition hover:text-white" data-markdown-preview>Предпросмотр</button>
+                    </div>
+                    <div data-markdown-write-panel>
+                        <label class="sr-only" for="review_body">Мнение об игре</label>
+                        <textarea class="field min-h-52 resize-y" id="review_body" name="body" maxlength="10000" placeholder="Что вам понравилось? Что можно было сделать лучше?" data-markdown-input>{{ old('body', $userReview?->body) }}</textarea>
+                    </div>
+                    <div class="markdown-content mt-2 hidden min-h-52 rounded-2xl border border-white/10 bg-black/20 p-4" data-markdown-preview-panel>
+                        <p class="text-slate-500">Здесь появится предпросмотр.</p>
+                    </div>
+                    @error('body') <p class="field-error">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <button class="button button-primary"><span class="material-symbols-outlined">save</span> Сохранить</button>
+                </div>
+            </form>
+
+            @if ($userReview)
+                <form method="POST" action="{{ route('game-reviews.destroy', $catalogGame) }}" class="mt-3">
+                    @csrf @method('DELETE')
+                    <button class="button button-danger button-sm" data-confirm="Удалить свою оценку и мнение?"><span class="material-symbols-outlined">delete</span> Удалить</button>
+                </form>
+            @endif
+        @else
+            <div class="mt-6 rounded-2xl border border-white/8 bg-white/[.025] p-5 text-center">
+                <p class="muted">Войдите, чтобы поставить оценку или написать мнение.</p>
+                <a href="{{ route('login') }}" class="button button-secondary button-sm mt-4"><span class="material-symbols-outlined">login</span> Войти</a>
+            </div>
+        @endauth
+    </div>
+
+    <aside class="panel h-fit">
+        <p class="text-xs font-bold uppercase tracking-[.15em] text-slate-500">Общая оценка</p>
+        <div class="mt-4 flex items-end gap-2">
+            <strong class="text-5xl font-extrabold text-amber-200">{{ $ratingAverage !== null ? number_format((float) $ratingAverage, 1, ',', ' ') : '—' }}</strong>
+            <span class="pb-1 text-sm font-bold text-slate-500">/ 10</span>
+        </div>
+        <p class="mt-3 text-xs text-slate-500">{{ $ratingCount }} {{ trans_choice('app.counts.ratings', $ratingCount) }}</p>
+    </aside>
+</section>
+
+<section class="mt-10">
+    <div class="mb-5">
+        <span class="eyebrow"><span class="material-symbols-outlined">edit</span> Мнения игроков</span>
+        <h2 class="text-2xl font-extrabold">Отзывы</h2>
+    </div>
+
+    @if ($reviews->isEmpty())
+        <div class="panel py-12 text-center">
+            <span class="material-symbols-outlined text-5xl text-violet-300/30">edit</span>
+            <p class="muted mt-3">Пока никто не написал мнение об этой игре.</p>
+        </div>
+    @else
+        <div class="space-y-4">
+            @foreach ($reviews as $review)
+                <article class="panel" data-game-review>
+                    <header class="flex items-start gap-3">
+                        <x-avatar :user="$review->user" size="small" />
+                        <div class="min-w-0 flex-1">
+                            <a href="{{ route('profiles.show', $review->user->login) }}" class="font-extrabold text-white transition hover:text-violet-200">{{ '@'.$review->user->login }}</a>
+                            <p class="mt-0.5 text-[10px] font-semibold text-slate-600">{{ $review->updated_at->diffForHumans() }}</p>
+                        </div>
+                        @if ($review->rating)
+                            <span class="rounded-xl border border-amber-300/20 bg-amber-400/10 px-3 py-2 text-sm font-extrabold text-amber-200">{{ $review->rating }} / 10</span>
+                        @endif
+                    </header>
+                    <div class="markdown-content mt-5 border-t border-white/8 pt-5">{!! $review->rendered_body !!}</div>
+                </article>
+            @endforeach
+        </div>
+        <div class="mt-6">{{ $reviews->links() }}</div>
+    @endif
+</section>
+@endsection

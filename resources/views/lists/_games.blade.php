@@ -26,17 +26,32 @@
 
                     <div class="space-y-3">
                         @forelse ($columnGames as $game)
+                            @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
                             <article class="glass overflow-hidden rounded-2xl p-3" data-board-game>
                                 <div class="flex gap-3">
-                                    <div class="grid h-20 w-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950">
+                                    @if ($gamePageUrl)
+                                        <a href="{{ $gamePageUrl }}" class="grid h-20 w-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950" aria-label="Открыть страницу игры {{ $game->title }}">
+                                    @else
+                                        <div class="grid h-20 w-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950">
+                                    @endif
                                         @if ($game->cover_url)
                                             <img src="{{ $game->cover_url }}" alt="Обложка {{ $game->title }}" class="h-full w-full object-cover" loading="lazy">
                                         @else
                                             <span class="material-symbols-outlined text-2xl text-white/20">sports_esports</span>
                                         @endif
-                                    </div>
+                                    @if ($gamePageUrl)
+                                        </a>
+                                    @else
+                                        </div>
+                                    @endif
                                     <div class="min-w-0 flex-1 py-0.5">
-                                        <h3 class="line-clamp-2 text-sm font-extrabold leading-5">{{ $game->title }}</h3>
+                                        <h3 class="line-clamp-2 text-sm font-extrabold leading-5">
+                                            @if ($gamePageUrl)
+                                                <a href="{{ $gamePageUrl }}" class="transition hover:text-violet-200">{{ $game->title }}</a>
+                                            @else
+                                                {{ $game->title }}
+                                            @endif
+                                        </h3>
                                         <p class="mt-1.5 truncate text-[10px] font-semibold text-slate-500">{{ $game->platform->label() }}</p>
                                         @if ($game->main_story_minutes)
                                             <p class="mt-2 flex items-center gap-1 text-[10px] text-slate-400"><span class="material-symbols-outlined text-xs">schedule</span>{{ $game->formattedTime($game->main_story_minutes) }}</p>
@@ -74,16 +89,31 @@
 @elseif ($gameList->display_mode === 'compact')
     <div class="glass overflow-hidden rounded-3xl">
         @foreach ($gameList->games as $game)
+            @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
             <article class="flex items-center gap-3 border-b border-white/7 p-3 last:border-b-0 sm:gap-4 sm:p-4">
-                <div class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-900/70 to-cyan-950/60 sm:size-16">
+                @if ($gamePageUrl)
+                    <a href="{{ $gamePageUrl }}" class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-900/70 to-cyan-950/60 sm:size-16" aria-label="Открыть страницу игры {{ $game->title }}">
+                @else
+                    <div class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-900/70 to-cyan-950/60 sm:size-16">
+                @endif
                     @if ($game->cover_url)
                         <img src="{{ $game->cover_url }}" alt="Обложка {{ $game->title }}" class="h-full w-full object-cover" loading="lazy">
                     @else
                         <span class="material-symbols-outlined text-2xl text-white/25">sports_esports</span>
                     @endif
-                </div>
+                @if ($gamePageUrl)
+                    </a>
+                @else
+                    </div>
+                @endif
                 <div class="min-w-0 flex-1">
-                    <h3 class="truncate text-sm font-extrabold sm:text-base">{{ $game->title }}</h3>
+                    <h3 class="truncate text-sm font-extrabold sm:text-base">
+                        @if ($gamePageUrl)
+                            <a href="{{ $gamePageUrl }}" class="transition hover:text-violet-200">{{ $game->title }}</a>
+                        @else
+                            {{ $game->title }}
+                        @endif
+                    </h3>
                     <div class="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
                         <span>{{ $game->platform->label() }}</span>
                         @if ($game->main_story_minutes)<span>· {{ $game->formattedTime($game->main_story_minutes) }}</span>@endif
@@ -108,8 +138,13 @@
 @else
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5">
         @foreach ($gameList->games as $game)
+            @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
             <article class="glass group overflow-hidden rounded-2xl transition duration-300 hover:-translate-y-1 hover:border-white/20 sm:rounded-3xl">
-                <div class="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950">
+                @if ($gamePageUrl)
+                    <a href="{{ $gamePageUrl }}" class="relative block aspect-[3/4] overflow-hidden bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950" aria-label="Открыть страницу игры {{ $game->title }}">
+                @else
+                    <div class="relative block aspect-[3/4] overflow-hidden bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950">
+                @endif
                     @if ($game->cover_url)
                         <img src="{{ $game->cover_url }}" alt="Обложка {{ $game->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" loading="lazy">
                     @else
@@ -119,9 +154,19 @@
                     <span class="absolute right-2.5 top-2.5 grid size-8 place-items-center rounded-xl border border-white/10 bg-black/60 text-violet-200 backdrop-blur-lg" title="{{ $game->status->label() }}">
                         <span class="material-symbols-outlined text-lg">{{ $game->status->icon() }}</span>
                     </span>
-                </div>
+                @if ($gamePageUrl)
+                    </a>
+                @else
+                    </div>
+                @endif
                 <div class="p-3.5 sm:p-4">
-                    <h3 class="line-clamp-2 min-h-10 text-sm font-extrabold leading-5 sm:text-base">{{ $game->title }}</h3>
+                    <h3 class="line-clamp-2 min-h-10 text-sm font-extrabold leading-5 sm:text-base">
+                        @if ($gamePageUrl)
+                            <a href="{{ $gamePageUrl }}" class="transition hover:text-violet-200">{{ $game->title }}</a>
+                        @else
+                            {{ $game->title }}
+                        @endif
+                    </h3>
                     <p class="mt-2 truncate text-[11px] font-semibold text-slate-500">{{ $game->platform->label() }}</p>
                     @if ($game->main_story_minutes)
                         <p class="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400"><span class="material-symbols-outlined text-sm">schedule</span>{{ $game->formattedTime($game->main_story_minutes) }}</p>

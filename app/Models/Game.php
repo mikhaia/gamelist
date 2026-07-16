@@ -15,7 +15,7 @@ class Game extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'normalized_title', 'status', 'platform', 'started_at', 'completed_at', 'hltb_id', 'cover_path',
+        'catalog_game_id', 'title', 'normalized_title', 'status', 'platform', 'started_at', 'completed_at', 'hltb_id', 'cover_path',
         'source_cover_url', 'main_story_minutes', 'main_extra_minutes',
         'completionist_minutes', 'notes', 'sort_order',
     ];
@@ -50,6 +50,11 @@ class Game extends Model
     public function gameList(): BelongsTo
     {
         return $this->belongsTo(GameList::class);
+    }
+
+    public function catalogGame(): BelongsTo
+    {
+        return $this->belongsTo(CatalogGame::class);
     }
 
     public function getCoverUrlAttribute(): ?string

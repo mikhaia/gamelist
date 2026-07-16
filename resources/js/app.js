@@ -598,6 +598,57 @@ document.addEventListener('submit', (event) => {
     renderFavoriteSuggestions(incompleteInput);
 });
 
+function setMarkdownEditorMode(editor, preview) {
+    const writeButton = editor.querySelector('[data-markdown-write]');
+    const previewButton = editor.querySelector('[data-markdown-preview]');
+
+    editor.querySelector('[data-markdown-write-panel]').classList.toggle('hidden', preview);
+    editor.querySelector('[data-markdown-preview-panel]').classList.toggle('hidden', !preview);
+    writeButton.classList.toggle('border-violet-400', !preview);
+    writeButton.classList.toggle('border-transparent', preview);
+    writeButton.classList.toggle('text-white', !preview);
+    writeButton.classList.toggle('text-slate-500', preview);
+    previewButton.classList.toggle('border-violet-400', preview);
+    previewButton.classList.toggle('border-transparent', !preview);
+    previewButton.classList.toggle('text-white', preview);
+    previewButton.classList.toggle('text-slate-500', !preview);
+}
+
+document.addEventListener('click', async (event) => {
+    const writeButton = event.target.closest('[data-markdown-write]');
+    if (writeButton) {
+        setMarkdownEditorMode(writeButton.closest('[data-markdown-editor]'), false);
+        return;
+    }
+
+    const previewButton = event.target.closest('[data-markdown-preview]');
+    if (!previewButton) return;
+
+    const editor = previewButton.closest('[data-markdown-editor]');
+    const previewPanel = editor.querySelector('[data-markdown-preview-panel]');
+    const formData = new FormData();
+    formData.set('body', editor.querySelector('[data-markdown-input], textarea[name="body"]').value);
+    setMarkdownEditorMode(editor, true);
+    previewPanel.innerHTML = '<p class="text-slate-500">Создаём предпросмотр…</p>';
+
+    try {
+        const response = await fetch(editor.dataset.previewUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+        });
+        if (!response.ok) throw new Error('Markdown preview failed');
+        const data = await response.json();
+        previewPanel.innerHTML = data.html || '<p class="text-slate-500">Введите текст, чтобы увидеть предпросмотр.</p>';
+    } catch {
+        previewPanel.innerHTML = '<p class="text-red-300">Не удалось создать предпросмотр.</p>';
+    }
+});
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initializeCatalogSearch();

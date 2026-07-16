@@ -14,14 +14,18 @@ return [
     ],
     'regex' => 'Неверный формат поля «:attribute».',
     'email' => 'Поле «:attribute» должно быть корректным email-адресом.',
+    'exists' => 'Выбранное значение поля «:attribute» недоступно.',
+    'integer' => 'Поле «:attribute» должно быть целым числом.',
     'url' => 'Поле «:attribute» должно быть корректным URL.',
     'image' => 'Поле «:attribute» должно быть изображением.',
     'current_password' => 'Текущий пароль указан неверно.',
+    'between' => ['numeric' => 'Поле «:attribute» должно быть от :min до :max.'],
     'after_or_equal' => 'Дата «:attribute» не может быть раньше даты начала.',
     'attributes' => [
         'login' => 'логин или email', 'email' => 'email', 'password' => 'пароль', 'title' => 'название', 'name' => 'название списка',
         'slug' => 'адрес списка', 'games_text' => 'список игр', 'cover' => 'обложка', 'avatar' => 'аватар',
         'profile_cover' => 'обложка профиля', 'game_ids' => 'любимые игры', 'code' => 'код',
         'started_at' => 'начало игры', 'completed_at' => 'окончание игры', 'current_password' => 'текущий пароль',
+        'rating' => 'оценка', 'body' => 'мнение', 'game_list_id' => 'список игр',
     ],
 ];

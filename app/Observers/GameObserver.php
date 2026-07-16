@@ -4,11 +4,20 @@ namespace App\Observers;
 
 use App\Enums\GameStatus;
 use App\Models\Game;
+use App\Services\CatalogGameResolver;
 use App\Services\SocialNotificationService;
 
 class GameObserver
 {
-    public function __construct(private readonly SocialNotificationService $notifications) {}
+    public function __construct(
+        private readonly SocialNotificationService $notifications,
+        private readonly CatalogGameResolver $catalogGames,
+    ) {}
+
+    public function saving(Game $game): void
+    {
+        $game->catalog_game_id = $this->catalogGames->resolve($game)?->id;
+    }
 
     public function created(Game $game): void
     {

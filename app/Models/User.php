@@ -44,6 +44,11 @@ class User extends Authenticatable
             ->orderByPivot('sort_order');
     }
 
+    public function gameReviews(): HasMany
+    {
+        return $this->hasMany(GameReview::class);
+    }
+
     public function getAvatarUrlAttribute(): ?string
     {
         return $this->avatar_path ? Storage::disk('public')->url($this->avatar_path) : null;

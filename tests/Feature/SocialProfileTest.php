@@ -85,6 +85,8 @@ class SocialProfileTest extends TestCase
             ->assertSee('Начните вводить название')
             ->assertSee('data-favorite-combobox', false)
             ->assertSee('data-title="Hades"', false)
+            ->assertSee('panel relative z-30 mt-4', false)
+            ->assertSee('left-0 z-50 mt-2', false)
             ->assertDontSee('<select class="field" id="favorite_game_', false);
 
         $this->actingAs($user)->patch(route('profile.favorites.update'), [
@@ -104,7 +106,10 @@ class SocialProfileTest extends TestCase
     public function test_profile_cover_is_optimized_and_replaces_previous_image(): void
     {
         Storage::fake('public');
-        $user = User::factory()->create(['profile_cover_path' => 'profile-covers/old.webp']);
+        $user = User::factory()->create([
+            'login' => 'cover_player',
+            'profile_cover_path' => 'profile-covers/old.webp',
+        ]);
         Storage::disk('public')->put('profile-covers/old.webp', 'old');
 
         $this->actingAs($user)->patch(route('settings.profile-cover'), [

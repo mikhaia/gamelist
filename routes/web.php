@@ -9,7 +9,10 @@ use App\Http\Controllers\CatalogSearchController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameImportController;
+use App\Http\Controllers\GameLibraryController;
 use App\Http\Controllers\GameListController;
+use App\Http\Controllers\GamePageController;
+use App\Http\Controllers\GameReviewController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
@@ -21,6 +24,9 @@ use App\Http\Middleware\TrackUserActivity;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::get('/game/{catalogGame}', GamePageController::class)
+    ->whereNumber('catalogGame')
+    ->name('games.show');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
@@ -55,6 +61,10 @@ Route::middleware(['auth', TrackUserActivity::class])->group(function (): void {
     Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
     Route::patch('/games/{game}/status', [GameController::class, 'status'])->name('games.status');
     Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
+    Route::post('/game/review/preview', [GameReviewController::class, 'preview'])->middleware('throttle:60,1')->name('game-reviews.preview');
+    Route::post('/game/{catalogGame}/add', [GameLibraryController::class, 'store'])->whereNumber('catalogGame')->name('game-library.store');
+    Route::put('/game/{catalogGame}/review', [GameReviewController::class, 'update'])->whereNumber('catalogGame')->name('game-reviews.update');
+    Route::delete('/game/{catalogGame}/review', [GameReviewController::class, 'destroy'])->whereNumber('catalogGame')->name('game-reviews.destroy');
 
     Route::get('/lists/{gameList}/import', [GameImportController::class, 'create'])->name('imports.create');
     Route::post('/lists/{gameList}/import/preview', [GameImportController::class, 'preview'])->name('imports.preview');
