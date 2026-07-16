@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CatalogGame;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -103,6 +104,43 @@ class SocialProfileTest extends TestCase
         ])->assertSessionHasErrors('game_ids');
     }
 
+    public function test_catalog_favorite_links_to_game_page_while_manual_favorite_does_not(): void
+    {
+        $user = User::factory()->create(['login' => 'favorite_player']);
+        $list = $user->gameLists()->create([
+            'name' => 'Favorites', 'slug' => 'favorites', 'default_platform' => 'pc',
+        ]);
+        $catalogGame = CatalogGame::query()->create([
+            'hltb_id' => 451,
+            'title' => 'Catalog Favorite',
+            'normalized_title' => 'catalog favorite',
+        ]);
+        $linkedGame = $list->games()->create([
+            'title' => $catalogGame->title,
+            'normalized_title' => $catalogGame->normalized_title,
+            'status' => 'completed',
+            'platform' => 'pc',
+            'hltb_id' => $catalogGame->hltb_id,
+        ]);
+        $manualGame = $list->games()->create([
+            'title' => 'Manual Favorite',
+            'normalized_title' => 'manual favorite',
+            'status' => 'playing',
+            'platform' => 'pc',
+        ]);
+        $user->favoriteGames()->attach([
+            $linkedGame->id => ['sort_order' => 0],
+            $manualGame->id => ['sort_order' => 1],
+        ]);
+
+        $this->get(route('profiles.show', $user->login))
+            ->assertOk()
+            ->assertSee('href="'.route('games.show', $catalogGame).'"', false)
+            ->assertSee('aria-label="Открыть страницу игры Catalog Favorite"', false)
+            ->assertSee('Manual Favorite')
+            ->assertDontSee('aria-label="Открыть страницу игры Manual Favorite"', false);
+    }
+
     public function test_profile_cover_is_optimized_and_replaces_previous_image(): void
     {
         Storage::fake('public');
@@ -154,6 +192,13 @@ class SocialProfileTest extends TestCase
             ->assertSee('aria-label="Мой профиль"', false)
             ->assertSee('href="'.route('settings.edit').'"', false)
             ->assertSee('aria-label="Настройки"', false)
+            ->assertSee('href="'.route('search.index').'"', false)
+            ->assertSee('aria-label="Поиск игр"', false)
+            ->assertSeeInOrder([
+                'href="'.route('settings.edit').'"',
+                'href="'.route('search.index').'"',
+                'data-notification-center',
+            ], false)
             ->assertSee('cursor-pointer', false);
     }
 }

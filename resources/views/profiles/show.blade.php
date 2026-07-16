@@ -16,17 +16,28 @@
     @if ($favoriteGames->isNotEmpty())
         <div class="grid gap-4 sm:grid-cols-3">
             @foreach ($favoriteGames as $game)
-                <article class="glass relative min-h-52 overflow-hidden rounded-3xl p-5">
+                @php
+                    $gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null;
+                @endphp
+                @if ($gamePageUrl)
+                    <a href="{{ $gamePageUrl }}" class="glass group relative min-h-52 overflow-hidden rounded-3xl p-5 transition duration-300 hover:-translate-y-1 hover:border-violet-300/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400" aria-label="Открыть страницу игры {{ $game->title }}" data-favorite-game-card>
+                @else
+                    <article class="glass relative min-h-52 overflow-hidden rounded-3xl p-5" data-favorite-game-card>
+                @endif
                     @if ($game->cover_url)
-                        <img src="{{ $game->cover_url }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-65">
+                        <img src="{{ $game->cover_url }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-65 transition duration-500 group-hover:scale-[1.03]">
                         <div class="absolute inset-0 bg-gradient-to-t from-[#090b16] via-[#090b16]/70 to-black/15"></div>
                     @endif
                     <div class="relative flex h-full min-h-42 flex-col justify-end">
                         <span class="status-chip w-fit">{{ $game->status->label() }}</span>
-                        <h3 class="mt-3 text-lg font-extrabold text-white">{{ $game->title }}</h3>
+                        <h3 class="mt-3 text-lg font-extrabold text-white transition group-hover:text-violet-200">{{ $game->title }}</h3>
                         <p class="mt-1 text-xs text-slate-400">{{ $game->platform->label() }}</p>
                     </div>
-                </article>
+                @if ($gamePageUrl)
+                    </a>
+                @else
+                    </article>
+                @endif
             @endforeach
         </div>
     @else

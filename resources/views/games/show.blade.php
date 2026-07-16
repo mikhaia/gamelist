@@ -17,7 +17,6 @@
     </div>
 
     <div class="min-w-0">
-        <span class="eyebrow"><span class="material-symbols-outlined">stadia_controller</span> Страница игры</span>
         <h1 class="page-title max-w-4xl">{{ $catalogGame->title }}</h1>
 
         <div class="mt-5 flex flex-wrap gap-2">
@@ -35,23 +34,20 @@
             </span>
         </div>
 
-        <div class="mt-7">
-            <p class="text-xs font-bold uppercase tracking-[.15em] text-slate-500">Добавления по статусам</p>
-            <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
-                @foreach (\App\Enums\GameStatus::cases() as $status)
-                    @php($count = $statusCounts[$status->value])
-                    <div class="rounded-2xl border p-3 {{ $count ? 'border-violet-400/20 bg-violet-500/10' : 'border-white/7 bg-white/[.025]' }}" data-status-count="{{ $status->value }}" data-count="{{ $count }}">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-lg {{ $count ? 'text-violet-300' : 'text-slate-600' }}">{{ $status->icon() }}</span>
-                            <strong class="text-lg text-white">{{ $count }}</strong>
-                        </div>
-                        <p class="mt-1 truncate text-[11px] font-semibold {{ $count ? 'text-slate-300' : 'text-slate-600' }}">{{ $status->label() }}</p>
+        <div class="mt-7 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+            @foreach (\App\Enums\GameStatus::cases() as $status)
+                @php($count = $statusCounts[$status->value])
+                <div class="rounded-2xl border p-3 {{ $count ? 'border-violet-400/20 bg-violet-500/10' : 'border-white/7 bg-white/[.025]' }}" data-status-count="{{ $status->value }}" data-count="{{ $count }}">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg {{ $count ? 'text-violet-300' : 'text-slate-600' }}">{{ $status->icon() }}</span>
+                        <strong class="text-lg text-white">{{ $count }}</strong>
                     </div>
-                @endforeach
-            </div>
+                    <p class="mt-1 truncate text-[11px] font-semibold {{ $count ? 'text-slate-300' : 'text-slate-600' }}">{{ $status->label() }}</p>
+                </div>
+            @endforeach
         </div>
 
-        <div class="panel mt-6">
+        <div class="panel p-4 mt-6">
             <div class="flex items-start gap-3">
                 <span class="grid size-10 shrink-0 place-items-center rounded-xl border border-violet-400/20 bg-violet-500/10 text-violet-300">
                     <span class="material-symbols-outlined">playlist_add</span>

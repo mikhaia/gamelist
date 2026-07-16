@@ -28,9 +28,11 @@ class CatalogBrowserTest extends TestCase
 
         $page = $this->actingAs($user)->get(route('catalog.index', $list));
         $page->assertOk()
-            ->assertSee('Каталог игр')
+            ->assertSee('Поиск игр')
+            ->assertDontSee('Каталог игр')
             ->assertSee('Показать ещё 20')
             ->assertSee('data-catalog-browser-input', false)
+            ->assertSee('href="'.route('games.show', CatalogGame::query()->oldest('id')->firstOrFail()).'"', false)
             ->assertDontSee('игр в локальном каталоге');
         $this->assertSame(20, substr_count($page->getContent(), 'data-catalog-browser-card'));
 
@@ -40,6 +42,56 @@ class CatalogBrowserTest extends TestCase
         ]));
         $more->assertOk()->assertJsonPath('count', 1)->assertJsonPath('next_page', null);
         $this->assertSame(1, substr_count($more->json('html'), 'data-catalog-browser-card'));
+    }
+
+    public function test_global_search_is_public_and_keeps_add_buttons_visible_for_guests(): void
+    {
+        $catalogGame = CatalogGame::create([
+            'hltb_id' => 51,
+            'title' => 'Public Search Game',
+            'normalized_title' => 'public search game',
+        ]);
+
+        $this->get(route('search.index'))
+            ->assertOk()
+            ->assertSee('Поиск игр')
+            ->assertDontSee('Каталог игр')
+            ->assertSee('href="'.route('games.show', $catalogGame).'"', false)
+            ->assertSee('aria-label="Открыть страницу игры Public Search Game"', false)
+            ->assertSee('data-catalog-list-picker', false)
+            ->assertSee('data-login-url="'.route('login').'"', false)
+            ->assertSee('href="'.route('search.index').'"', false);
+
+        $this->getJson(route('search.results'))
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertSee('Public Search Game');
+    }
+
+    public function test_global_search_opens_the_authenticated_users_lists_after_plus_click(): void
+    {
+        $user = User::factory()->create();
+        $firstList = $user->gameLists()->create([
+            'name' => 'Switch Games', 'slug' => 'switch-games', 'default_platform' => 'nintendo_switch',
+        ]);
+        $secondList = $user->gameLists()->create([
+            'name' => 'Steam Games', 'slug' => 'steam-games', 'default_platform' => 'steam',
+        ]);
+        CatalogGame::create([
+            'hltb_id' => 52,
+            'title' => 'List Picker Game',
+            'normalized_title' => 'list picker game',
+        ]);
+
+        $this->actingAs($user)->get(route('search.index'))
+            ->assertOk()
+            ->assertSee('data-catalog-list-dialog', false)
+            ->assertSee('data-catalog-list-option', false)
+            ->assertSee('Switch Games')
+            ->assertSee('Steam Games')
+            ->assertSee('data-add-url-template="'.route('catalog.add', [$firstList, 'CATALOG_GAME_ID']).'"', false)
+            ->assertSee('data-add-url-template="'.route('catalog.add', [$secondList, 'CATALOG_GAME_ID']).'"', false)
+            ->assertDontSee('data-login-url=', false);
     }
 
     public function test_catalog_search_returns_local_matches(): void

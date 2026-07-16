@@ -12,7 +12,7 @@ class GamePageTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_game_page_shows_cover_and_addition_counts_by_status(): void
+    public function test_game_page_shows_cover_and_status_counts_without_status_heading(): void
     {
         $catalogGame = CatalogGame::query()->create([
             'hltb_id' => 9001,
@@ -49,12 +49,15 @@ class GamePageTest extends TestCase
             ->assertOk()
             ->assertSee('data-game-page="'.$catalogGame->id.'"', false)
             ->assertSee('https://images.example.com/hades-ii.jpg', false)
+            ->assertSee('4 добавления')
+            ->assertSee('panel p-4 mt-6', false)
+            ->assertDontSee('Добавления по статусам')
             ->assertSee('data-status-count="want_to_play" data-count="2"', false)
             ->assertSee('data-status-count="installed" data-count="0"', false)
             ->assertSee('data-status-count="playing" data-count="1"', false)
             ->assertSee('data-status-count="completed" data-count="1"', false)
             ->assertSee('data-status-count="dropped" data-count="0"', false)
-            ->assertSee('4 добавления');
+            ->assertDontSee('Страница игры');
     }
 
     public function test_only_catalog_games_link_to_a_page_in_every_list_mode(): void

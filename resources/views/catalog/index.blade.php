@@ -1,30 +1,40 @@
 @extends('layouts.app')
 
-@section('title', 'Каталог игр')
+@section('title', 'Поиск игр')
 
 @section('content')
 <div
     data-catalog-browser
-    data-results-url="{{ route('catalog.results', $gameList) }}"
+    data-results-url="{{ $gameList ? route('catalog.results', $gameList) : route('search.results') }}"
     data-fresh-url="{{ route('catalog.search') }}"
     data-query="{{ $query }}"
     data-next-page="{{ $games->hasMorePages() ? $games->currentPage() + 1 : '' }}"
 >
-    <a class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-white" href="{{ route('lists.show', $gameList) }}">
-        <span class="material-symbols-outlined">arrow_back</span> {{ __('app.actions.back') }}
-    </a>
+    @if ($gameList)
+        <a class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-white" href="{{ route('lists.show', $gameList) }}">
+            <span class="material-symbols-outlined">arrow_back</span> {{ __('app.actions.back') }}
+        </a>
+    @endif
 
     <div class="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
             <span class="eyebrow"><span class="material-symbols-outlined">travel_explore</span> Быстрое добавление</span>
-            <h1 class="page-title">Каталог игр</h1>
-            <p class="muted mt-2 max-w-2xl">Нажимайте <span class="material-symbols-outlined text-base text-violet-300">add</span>, чтобы добавлять игры в «{{ $gameList->name }}» без перезагрузки страницы.</p>
+            <h1 class="page-title">Поиск игр</h1>
+            @if ($gameList)
+                <p class="muted mt-2 max-w-2xl">Нажимайте <span class="material-symbols-outlined text-base text-violet-300">add</span>, чтобы добавлять игры в «{{ $gameList->name }}» без перезагрузки страницы.</p>
+            @elseif (auth()->check())
+                <p class="muted mt-2 max-w-2xl">Нажмите <span class="material-symbols-outlined text-base text-violet-300">add</span> у нужной игры и выберите список, в который хотите её добавить.</p>
+            @else
+                <p class="muted mt-2 max-w-2xl">Ищите игры, открывайте подробную информацию и добавляйте их в свои списки после входа.</p>
+            @endif
         </div>
-        <span class="status-chip shrink-0"><span class="material-symbols-outlined text-sm">playlist_add</span>Список: {{ $gameList->name }}</span>
+        @if ($gameList)
+            <span class="status-chip shrink-0"><span class="material-symbols-outlined text-sm">playlist_add</span>Список: {{ $gameList->name }}</span>
+        @endif
     </div>
 
     <div class="panel mb-6">
-        <form method="GET" action="{{ route('catalog.index', $gameList) }}" class="flex flex-col gap-3 sm:flex-row" data-catalog-browser-form>
+        <form method="GET" action="{{ $gameList ? route('catalog.index', $gameList) : route('search.index') }}" class="flex flex-col gap-3 sm:flex-row" data-catalog-browser-form>
             <div class="relative min-w-0 flex-1">
                 <span class="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">search</span>
                 <input class="field mt-0 pl-12" name="q" value="{{ $query }}" placeholder="Найдите игру по названию" autocomplete="off" aria-label="Поиск игр" data-catalog-browser-input>
@@ -56,5 +66,49 @@
             <span class="material-symbols-outlined">expand_more</span><span data-catalog-browser-more-label>Показать ещё 20</span>
         </button>
     </div>
+
+    @auth
+        @if (! $gameList)
+            <div class="fixed inset-0 z-[60] hidden items-center justify-center p-4" data-catalog-list-dialog>
+                <button type="button" class="absolute inset-0 cursor-pointer bg-black/75 backdrop-blur-sm" aria-label="Закрыть выбор списка" data-catalog-list-close></button>
+                <section class="glass relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#0b0e1a] shadow-2xl shadow-black/60" role="dialog" aria-modal="true" aria-labelledby="catalog-list-dialog-title">
+                    <header class="flex items-start gap-3 border-b border-white/10 p-5">
+                        <span class="grid size-10 shrink-0 place-items-center rounded-xl border border-violet-400/20 bg-violet-500/10 text-violet-300">
+                            <span class="material-symbols-outlined">playlist_add</span>
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <h2 id="catalog-list-dialog-title" class="font-extrabold text-white">Добавить в список</h2>
+                            <p class="mt-1 truncate text-xs text-slate-500" data-catalog-list-game-title></p>
+                        </div>
+                        <button type="button" class="grid size-9 cursor-pointer place-items-center rounded-xl text-slate-500 transition hover:bg-white/8 hover:text-white" aria-label="Закрыть" data-catalog-list-close>
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </header>
+
+                    @if ($userLists->isEmpty())
+                        <div class="p-6 text-center">
+                            <span class="material-symbols-outlined text-4xl text-violet-300/30">playlist_add</span>
+                            <p class="muted mt-3">Сначала создайте игровой список.</p>
+                            <a href="{{ route('lists.create') }}" class="button button-primary button-sm mt-4"><span class="material-symbols-outlined">add</span> Создать список</a>
+                        </div>
+                    @else
+                        <div class="max-h-[60vh] space-y-2 overflow-y-auto overscroll-contain p-3" data-catalog-list-options>
+                            @foreach ($userLists as $list)
+                                <button type="button" class="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/8 bg-white/[.025] p-3 text-left transition hover:border-violet-400/25 hover:bg-violet-500/8" data-catalog-list-option data-add-url-template="{{ route('catalog.add', [$list, 'CATALOG_GAME_ID']) }}">
+                                    <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-500/10 text-violet-300">
+                                        <span class="material-symbols-outlined" data-catalog-list-option-icon>add</span>
+                                    </span>
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm font-extrabold text-white">{{ $list->name }}</span>
+                                        <span class="mt-0.5 block text-[10px] font-semibold text-slate-500">{{ __('app.platforms.'.$list->default_platform) }}</span>
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+                </section>
+            </div>
+        @endif
+    @endauth
 </div>
 @endsection

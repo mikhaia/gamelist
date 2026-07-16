@@ -63,6 +63,9 @@
                     <a href="{{ route('settings.edit') }}" class="grid size-8 cursor-pointer place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white sm:size-10" title="Настройки" aria-label="Настройки">
                         <span class="material-symbols-outlined">settings</span>
                     </a>
+                    <a href="{{ route('search.index') }}" class="grid size-8 cursor-pointer place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white sm:size-10" title="Поиск игр" aria-label="Поиск игр">
+                        <span class="material-symbols-outlined">search</span>
+                    </a>
                     <div class="relative" data-notification-center data-notification-count="{{ $navigationNotificationCount }}">
                         <button type="button" class="relative grid size-8 cursor-pointer place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white sm:size-10" data-notification-toggle aria-label="Уведомления" aria-expanded="false">
                             <span class="material-symbols-outlined">notifications</span>
@@ -118,6 +121,9 @@
                         </button>
                     </form>
                 @else
+                    <a href="{{ route('search.index') }}" class="grid size-8 cursor-pointer place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white sm:size-10" title="Поиск игр" aria-label="Поиск игр">
+                        <span class="material-symbols-outlined">search</span>
+                    </a>
                     <a class="nav-link" href="{{ route('login') }}">{{ __('app.nav.login') }}</a>
                     <a class="button button-primary button-sm" href="{{ route('register') }}">{{ __('app.nav.register') }}</a>
                 @endauth

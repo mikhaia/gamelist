@@ -27,6 +27,10 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('/game/{catalogGame}', GamePageController::class)
     ->whereNumber('catalogGame')
     ->name('games.show');
+Route::get('/search', [CatalogBrowserController::class, 'search'])->name('search.index');
+Route::get('/search/results', [CatalogBrowserController::class, 'searchResults'])->middleware('throttle:120,1')->name('search.results');
+Route::get('/catalog/search/cached', [CatalogSearchController::class, 'cached'])->middleware('throttle:120,1')->name('catalog.cached');
+Route::get('/catalog/search', [CatalogSearchController::class, 'fresh'])->middleware('throttle:30,1')->name('catalog.search');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
@@ -47,8 +51,6 @@ Route::middleware(['auth', TrackUserActivity::class])->group(function (): void {
     Route::delete('/friends/{friend}', [FriendController::class, 'destroy'])->name('friends.destroy');
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::delete('/notifications', [NotificationController::class, 'clear'])->name('notifications.clear');
-    Route::get('/catalog/search/cached', [CatalogSearchController::class, 'cached'])->middleware('throttle:120,1')->name('catalog.cached');
-    Route::get('/catalog/search', [CatalogSearchController::class, 'fresh'])->middleware('throttle:30,1')->name('catalog.search');
     Route::resource('lists', GameListController::class)->parameters(['lists' => 'gameList']);
     Route::patch('/lists/{gameList}/display', [GameListController::class, 'display'])->name('lists.display');
     Route::get('/lists/{gameList}/catalog', [CatalogBrowserController::class, 'index'])->name('catalog.index');

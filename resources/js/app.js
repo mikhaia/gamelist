@@ -133,6 +133,25 @@ function renderCatalogBrowser(browser, data, replace = true) {
     browser.dataset.nextPage = data.next_page || '';
 }
 
+function closeCatalogListDialog(dialog) {
+    if (!dialog) return;
+
+    dialog.classList.add('hidden');
+    dialog.classList.remove('flex');
+    dialog.catalogTrigger?.focus();
+}
+
+function resetCatalogListOptions(dialog) {
+    dialog.querySelectorAll('[data-catalog-list-option]').forEach((option) => {
+        option.disabled = false;
+        option.classList.add('border-white/8', 'bg-white/[.025]');
+        option.classList.remove('border-emerald-400/25', 'bg-emerald-950/40');
+        const icon = option.querySelector('[data-catalog-list-option-icon]');
+        icon.textContent = 'add';
+        icon.classList.remove('animate-spin', 'text-emerald-300', 'text-red-300');
+    });
+}
+
 async function runCatalogBrowserSearch(query, localFirst = true) {
     const browser = document.querySelector('[data-catalog-browser]');
     if (!browser) return;
@@ -187,6 +206,69 @@ document.addEventListener('click', async (event) => {
             panel.classList.add('hidden');
             panel.closest('[data-notification-center]')?.querySelector('[data-notification-toggle]')?.setAttribute('aria-expanded', 'false');
         });
+    }
+
+    const listPicker = event.target.closest('[data-catalog-list-picker]');
+    if (listPicker) {
+        if (listPicker.dataset.loginUrl) {
+            window.location.assign(listPicker.dataset.loginUrl);
+            return;
+        }
+
+        const dialog = document.querySelector('[data-catalog-list-dialog]');
+        if (!dialog) return;
+        if (dialog.dataset.catalogId !== listPicker.dataset.catalogId) resetCatalogListOptions(dialog);
+        dialog.dataset.catalogId = listPicker.dataset.catalogId;
+        dialog.querySelector('[data-catalog-list-game-title]').textContent = listPicker.dataset.catalogTitle;
+        dialog.catalogTrigger = listPicker;
+        dialog.classList.remove('hidden');
+        dialog.classList.add('flex');
+        dialog.querySelector('[data-catalog-list-option], [data-catalog-list-close]')?.focus();
+        return;
+    }
+
+    const listDialogClose = event.target.closest('[data-catalog-list-close]');
+    if (listDialogClose) {
+        closeCatalogListDialog(listDialogClose.closest('[data-catalog-list-dialog]'));
+        return;
+    }
+
+    const listOption = event.target.closest('[data-catalog-list-option]');
+    if (listOption && !listOption.disabled) {
+        const dialog = listOption.closest('[data-catalog-list-dialog]');
+        const icon = listOption.querySelector('[data-catalog-list-option-icon]');
+        const endpoint = listOption.dataset.addUrlTemplate.replace('CATALOG_GAME_ID', dialog.dataset.catalogId);
+        listOption.disabled = true;
+        icon.textContent = 'progress_activity';
+        icon.classList.add('animate-spin');
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+            });
+            if (!response.ok && response.status !== 409) throw new Error('List add failed');
+
+            icon.classList.remove('animate-spin');
+            icon.classList.add('text-emerald-300');
+            icon.textContent = 'check';
+            listOption.classList.remove('border-white/8', 'bg-white/[.025]');
+            listOption.classList.add('border-emerald-400/25', 'bg-emerald-950/40');
+        } catch {
+            icon.classList.remove('animate-spin');
+            icon.classList.add('text-red-300');
+            icon.textContent = 'error';
+            window.setTimeout(() => {
+                icon.classList.remove('text-red-300');
+                icon.textContent = 'add';
+                listOption.disabled = false;
+            }, 1800);
+        }
+        return;
     }
 
     const quickAddButton = event.target.closest('[data-quick-add]');
@@ -309,6 +391,8 @@ document.addEventListener('submit', async (event) => {
 
 document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
+
+    closeCatalogListDialog(document.querySelector('[data-catalog-list-dialog]:not(.hidden)'));
 
     document.querySelectorAll('[data-notification-panel]:not(.hidden)').forEach((panel) => {
         panel.classList.add('hidden');
