@@ -6,6 +6,7 @@ arrow_forward
 auto_awesome
 block
 bookmark_add
+calendar_today
 category
 check
 check_circle
