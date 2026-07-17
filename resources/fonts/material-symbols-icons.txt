@@ -6,12 +6,14 @@ arrow_forward
 auto_awesome
 block
 bookmark_add
+category
 check
 check_circle
 close
 cloud_off
 content_copy
 delete
+devices
 download_done
 edit
 error
@@ -31,6 +33,7 @@ notifications
 password
 person
 person_add
+photo_library
 play_circle
 playlist_add
 preview

@@ -7,7 +7,12 @@
     data-catalog-browser
     data-results-url="{{ $gameList ? route('catalog.results', $gameList) : route('search.results') }}"
     data-fresh-url="{{ route('catalog.search') }}"
+    data-rawg-url="{{ route('catalog.rawg-search') }}"
     data-query="{{ $query }}"
+    data-genre="{{ $filters['genre'] }}"
+    data-genre-name="{{ $filters['genreName'] }}"
+    data-platform="{{ $filters['platform'] }}"
+    data-platform-name="{{ $filters['platformName'] }}"
     data-next-page="{{ $games->hasMorePages() ? $games->currentPage() + 1 : '' }}"
 >
     @if ($gameList)
@@ -34,15 +39,41 @@
     </div>
 
     <div class="panel mb-6">
-        <form method="GET" action="{{ $gameList ? route('catalog.index', $gameList) : route('search.index') }}" class="flex flex-col gap-3 sm:flex-row" data-catalog-browser-form>
-            <div class="relative min-w-0 flex-1">
+        <form method="GET" action="{{ $gameList ? route('catalog.index', $gameList) : route('search.index') }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(16rem,1fr)_minmax(11rem,14rem)_minmax(11rem,14rem)_auto]" data-catalog-browser-form>
+            <div class="relative min-w-0 sm:col-span-2 lg:col-span-1">
                 <span class="material-symbols-outlined pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-600">search</span>
                 <input class="field mt-0 pl-12" name="q" value="{{ $query }}" placeholder="Найдите игру по названию" autocomplete="off" aria-label="Поиск игр" data-catalog-browser-input>
             </div>
-            <button class="button button-primary shrink-0"><span class="material-symbols-outlined">search</span> Найти игры</button>
+            <div class="relative min-w-0">
+                <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-base text-violet-300">category</span>
+                <select class="field mt-0 appearance-none pl-10 pr-9" name="genre" aria-label="Жанр" data-catalog-browser-genre>
+                    <option value="">Все жанры</option>
+                    @if ($filters['genre'] && ! collect($filterOptions['genres'])->contains('value', $filters['genre']))
+                        <option value="{{ $filters['genre'] }}" selected>{{ $filters['genreName'] }}</option>
+                    @endif
+                    @foreach ($filterOptions['genres'] as $option)
+                        <option value="{{ $option['value'] }}" @selected($filters['genre'] === $option['value'])>{{ $option['label'] }}</option>
+                    @endforeach
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-base text-slate-600">expand_more</span>
+            </div>
+            <div class="relative min-w-0">
+                <span class="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-base text-cyan-300">devices</span>
+                <select class="field mt-0 appearance-none pl-10 pr-9" name="platform" aria-label="Платформа" data-catalog-browser-platform>
+                    <option value="">Все платформы</option>
+                    @if ($filters['platform'] && ! collect($filterOptions['platforms'])->contains('value', $filters['platform']))
+                        <option value="{{ $filters['platform'] }}" selected>{{ $filters['platformName'] }}</option>
+                    @endif
+                    @foreach ($filterOptions['platforms'] as $option)
+                        <option value="{{ $option['value'] }}" @selected($filters['platform'] === $option['value'])>{{ $option['label'] }}</option>
+                    @endforeach
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-base text-slate-600">expand_more</span>
+            </div>
+            <button class="button button-primary shrink-0 sm:col-span-2 lg:col-span-1"><span class="material-symbols-outlined">search</span> Найти игры</button>
         </form>
         <div class="mt-4 flex justify-end text-xs text-slate-500">
-            <span class="{{ $query === '' ? 'hidden' : 'flex' }} items-center gap-2 text-violet-300/70" data-catalog-browser-loading>
+            <span class="{{ $query === '' && ! $filters['genre'] && ! $filters['platform'] ? 'hidden' : 'flex' }} items-center gap-2 text-violet-300/70" data-catalog-browser-loading>
                 <span class="material-symbols-outlined animate-spin text-base">progress_activity</span><span data-catalog-browser-loading-label>Ищем игры…</span>
             </span>
         </div>

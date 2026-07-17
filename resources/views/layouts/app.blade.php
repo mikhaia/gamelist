@@ -13,14 +13,14 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
-    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260717" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260717-3" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {
             font-family: 'Material Symbols Outlined';
             font-style: normal;
             font-weight: 400;
             font-display: block;
-            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260717') format('woff2');
+            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260717-3') format('woff2');
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -142,8 +142,16 @@
         @yield('content')
     </main>
 
-    <footer class="relative z-10 mx-auto max-w-7xl px-4 py-10 text-center text-xs text-slate-600">
-        GameList · {{ date('Y') }} · {{ __('app.tagline') }}
+    @stack('modals')
+
+    <footer class="relative z-10 mx-auto max-w-7xl px-4 py-10 text-center text-xs leading-6 text-slate-600">
+        <p>GameList · {{ date('Y') }} · {{ __('app.tagline') }}</p>
+        <p>
+            Некоторые данные об играх предоставлены
+            <a href="https://howlongtobeat.com/" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-500 transition hover:text-violet-300">HowLongToBeat</a>
+            и
+            <a href="https://rawg.io/" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-500 transition hover:text-violet-300">RAWG</a>.
+        </p>
     </footer>
 </body>
 </html>

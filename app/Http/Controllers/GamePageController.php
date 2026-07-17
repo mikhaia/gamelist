@@ -5,16 +5,22 @@ namespace App\Http\Controllers;
 use App\Enums\GameStatus;
 use App\Models\CatalogGame;
 use App\Models\Game;
+use App\Services\RawgCatalogEnricher;
 use App\Services\ReviewMarkdown;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class GamePageController extends Controller
 {
-    public function __construct(private readonly ReviewMarkdown $markdown) {}
+    public function __construct(
+        private readonly ReviewMarkdown $markdown,
+        private readonly RawgCatalogEnricher $rawg,
+    ) {}
 
     public function __invoke(Request $request, CatalogGame $catalogGame): View
     {
+        $catalogGame = $this->rawg->enrich($catalogGame);
+
         $statusTotals = $catalogGame->games()
             ->selectRaw('status, count(*) as total')
             ->groupBy('status')

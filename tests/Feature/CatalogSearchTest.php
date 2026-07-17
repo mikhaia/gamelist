@@ -84,4 +84,37 @@ class CatalogSearchTest extends TestCase
 
         $this->assertStringContainsString('Из кэша', $response->json('html'));
     }
+
+    public function test_hltb_result_merges_into_an_existing_rawg_only_game(): void
+    {
+        $rawgGame = CatalogGame::create([
+            'rawg_id' => 3498,
+            'rawg_slug' => 'grand-theft-auto-v',
+            'title' => 'Grand Theft Auto V',
+            'normalized_title' => 'grand theft auto v',
+            'genres' => ['Action'],
+            'genre_slugs' => ['action'],
+        ]);
+
+        $this->mock(GameCatalog::class)
+            ->shouldReceive('search')
+            ->once()
+            ->with('Grand Theft Auto V', 20)
+            ->andReturn([[
+                'id' => 4064,
+                'title' => 'Grand Theft Auto V',
+                'cover_url' => 'https://howlongtobeat.com/games/gta-v.jpg',
+                'main_story_minutes' => 1900,
+                'main_extra_minutes' => null,
+                'completionist_minutes' => 5000,
+            ]]);
+
+        $this->getJson(route('catalog.search', ['q' => 'Grand Theft Auto V']))->assertOk();
+
+        $rawgGame->refresh();
+        $this->assertSame(4064, $rawgGame->hltb_id);
+        $this->assertSame(3498, $rawgGame->rawg_id);
+        $this->assertSame(['action'], $rawgGame->genre_slugs);
+        $this->assertDatabaseCount('catalog_games', 1);
+    }
 }

@@ -103,18 +103,34 @@ async function runCatalogSearch(query, includeCache = false) {
 let catalogBrowserRun = 0;
 let catalogBrowserInputTimer;
 
-function catalogBrowserEndpoint(endpoint, query, page = 1) {
+function catalogBrowserEndpoint(browser, endpoint, query, page = null) {
     const url = new URL(endpoint, window.location.origin);
     if (query) url.searchParams.set('q', query);
-    url.searchParams.set('page', page);
+    if (browser.dataset.genre) {
+        url.searchParams.set('genre', browser.dataset.genre);
+        if (browser.dataset.genreName) url.searchParams.set('genre_name', browser.dataset.genreName);
+    }
+    if (browser.dataset.platform) {
+        url.searchParams.set('platform', browser.dataset.platform);
+        if (browser.dataset.platformName) url.searchParams.set('platform_name', browser.dataset.platformName);
+    }
+    if (page !== null) url.searchParams.set('page', page);
     return url;
 }
 
 async function requestCatalogBrowser(browser, query, page = 1) {
-    const response = await fetch(catalogBrowserEndpoint(browser.dataset.resultsUrl, query, page), {
+    const response = await fetch(catalogBrowserEndpoint(browser, browser.dataset.resultsUrl, query, page), {
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
     });
     if (!response.ok) throw new Error('Catalog browser request failed');
+    return response.json();
+}
+
+async function requestRawgCatalog(browser, query) {
+    const response = await fetch(catalogBrowserEndpoint(browser, browser.dataset.rawgUrl, query), {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    });
+    if (!response.ok) throw new Error('RAWG catalog request failed');
     return response.json();
 }
 
@@ -141,6 +157,51 @@ function closeCatalogListDialog(dialog) {
     dialog.catalogTrigger?.focus();
 }
 
+function screenshotTriggers() {
+    return Array.from(document.querySelectorAll('[data-screenshot-open]'));
+}
+
+function showScreenshot(modal, index) {
+    const triggers = screenshotTriggers();
+    if (triggers.length === 0) return;
+
+    const normalizedIndex = (index + triggers.length) % triggers.length;
+    const trigger = triggers[normalizedIndex];
+    const image = modal.querySelector('[data-screenshot-modal-image]');
+
+    modal.dataset.screenshotIndex = String(normalizedIndex);
+    image.src = trigger.dataset.screenshotUrl;
+    image.alt = trigger.dataset.screenshotAlt;
+    modal.querySelector('[data-screenshot-caption]').textContent = trigger.dataset.screenshotAlt;
+    modal.querySelector('[data-screenshot-counter]').textContent = `${normalizedIndex + 1} / ${triggers.length}`;
+    modal.querySelector('[data-screenshot-previous]').classList.toggle('hidden', triggers.length < 2);
+    modal.querySelector('[data-screenshot-next]').classList.toggle('hidden', triggers.length < 2);
+}
+
+function openScreenshotModal(trigger) {
+    const modal = document.querySelector('[data-screenshot-modal]');
+    if (!modal) return;
+
+    modal.screenshotTrigger = trigger;
+    showScreenshot(modal, Number(trigger.dataset.screenshotIndex));
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('overflow-hidden');
+    modal.querySelector('[data-screenshot-close]:not(.absolute.inset-0)')?.focus();
+}
+
+function closeScreenshotModal(modal) {
+    if (!modal || modal.classList.contains('hidden')) return;
+
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('overflow-hidden');
+    modal.querySelector('[data-screenshot-modal-image]').removeAttribute('src');
+    modal.screenshotTrigger?.focus();
+}
+
 function resetCatalogListOptions(dialog) {
     dialog.querySelectorAll('[data-catalog-list-option]').forEach((option) => {
         option.disabled = false;
@@ -160,8 +221,28 @@ async function runCatalogBrowserSearch(query, localFirst = true) {
     const loading = browser.querySelector('[data-catalog-browser-loading]');
     const loadingLabel = browser.querySelector('[data-catalog-browser-loading-label]');
     const error = browser.querySelector('[data-catalog-browser-error]');
+    const hasRawgFilters = Boolean(browser.dataset.genre || browser.dataset.platform);
 
     browser.dataset.query = query;
+    const browserUrl = new URL(window.location.href);
+    if (query) browserUrl.searchParams.set('q', query);
+    else browserUrl.searchParams.delete('q');
+    if (browser.dataset.genre) {
+        browserUrl.searchParams.set('genre', browser.dataset.genre);
+        browserUrl.searchParams.set('genre_name', browser.dataset.genreName);
+    } else {
+        browserUrl.searchParams.delete('genre');
+        browserUrl.searchParams.delete('genre_name');
+    }
+    if (browser.dataset.platform) {
+        browserUrl.searchParams.set('platform', browser.dataset.platform);
+        browserUrl.searchParams.set('platform_name', browser.dataset.platformName);
+    } else {
+        browserUrl.searchParams.delete('platform');
+        browserUrl.searchParams.delete('platform_name');
+    }
+    browserUrl.searchParams.delete('page');
+    window.history.replaceState({}, '', browserUrl);
     loading.classList.remove('hidden');
     loading.classList.add('flex');
     error.classList.add('hidden');
@@ -174,9 +255,10 @@ async function runCatalogBrowserSearch(query, localFirst = true) {
             renderCatalogBrowser(browser, local);
         }
 
-        if (query !== '') {
-            loadingLabel.textContent = 'Ищем игры…';
-            await requestCatalog(browser.dataset.freshUrl, query);
+        if (query !== '' || hasRawgFilters) {
+            loadingLabel.textContent = hasRawgFilters ? 'Ищем игры в RAWG…' : 'Ищем игры…';
+            if (hasRawgFilters) await requestRawgCatalog(browser, query);
+            else await requestCatalog(browser.dataset.freshUrl, query);
             if (run !== catalogBrowserRun) return;
 
             const refreshed = await requestCatalogBrowser(browser, query);
@@ -193,7 +275,38 @@ async function runCatalogBrowserSearch(query, localFirst = true) {
     }
 }
 
+function syncCatalogBrowserFormFilters(form) {
+    const browser = form.closest('[data-catalog-browser]');
+    const genre = form.querySelector('[data-catalog-browser-genre]');
+    const platform = form.querySelector('[data-catalog-browser-platform]');
+
+    browser.dataset.genre = genre?.value || '';
+    browser.dataset.genreName = genre?.value ? genre.selectedOptions[0].textContent.trim() : '';
+    browser.dataset.platform = platform?.value || '';
+    browser.dataset.platformName = platform?.value ? platform.selectedOptions[0].textContent.trim() : '';
+}
+
 document.addEventListener('click', async (event) => {
+    const screenshotOpen = event.target.closest('[data-screenshot-open]');
+    if (screenshotOpen) {
+        openScreenshotModal(screenshotOpen);
+        return;
+    }
+
+    const screenshotClose = event.target.closest('[data-screenshot-close]');
+    if (screenshotClose) {
+        closeScreenshotModal(screenshotClose.closest('[data-screenshot-modal]'));
+        return;
+    }
+
+    const screenshotDirection = event.target.closest('[data-screenshot-previous], [data-screenshot-next]');
+    if (screenshotDirection) {
+        const modal = screenshotDirection.closest('[data-screenshot-modal]');
+        const direction = screenshotDirection.matches('[data-screenshot-next]') ? 1 : -1;
+        showScreenshot(modal, Number(modal.dataset.screenshotIndex) + direction);
+        return;
+    }
+
     const notificationToggle = event.target.closest('[data-notification-toggle]');
     if (notificationToggle) {
         const center = notificationToggle.closest('[data-notification-center]');
@@ -572,7 +685,19 @@ document.addEventListener('change', async (event) => {
 });
 
 document.addEventListener('keydown', (event) => {
+    const screenshotModal = document.querySelector('[data-screenshot-modal]:not(.hidden)');
+    if (screenshotModal && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+        event.preventDefault();
+        showScreenshot(
+            screenshotModal,
+            Number(screenshotModal.dataset.screenshotIndex) + (event.key === 'ArrowRight' ? 1 : -1),
+        );
+        return;
+    }
+
     if (event.key !== 'Escape') return;
+
+    closeScreenshotModal(screenshotModal);
 
     closeCatalogListDialog(document.querySelector('[data-catalog-list-dialog]:not(.hidden)'));
 
@@ -628,7 +753,15 @@ document.addEventListener('submit', (event) => {
     event.preventDefault();
     window.clearTimeout(catalogBrowserInputTimer);
     const query = String(new FormData(form).get('q') || '').trim();
+    syncCatalogBrowserFormFilters(form);
     runCatalogBrowserSearch(query);
+});
+
+document.addEventListener('change', (event) => {
+    const select = event.target.closest('[data-catalog-browser-genre], [data-catalog-browser-platform]');
+    if (!select) return;
+
+    syncCatalogBrowserFormFilters(select.form);
 });
 
 document.addEventListener('input', (event) => {
@@ -656,7 +789,9 @@ function initializeCatalogSearch() {
 
 function initializeCatalogBrowser() {
     const browser = document.querySelector('[data-catalog-browser]');
-    if (browser?.dataset.query) runCatalogBrowserSearch(browser.dataset.query, false);
+    if (browser && (browser.dataset.query || browser.dataset.genre || browser.dataset.platform)) {
+        runCatalogBrowserSearch(browser.dataset.query || '', false);
+    }
 }
 
 function updateGameLibraryStatusOptions(listSelect) {

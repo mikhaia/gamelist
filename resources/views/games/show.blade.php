@@ -34,6 +34,50 @@
             </span>
         </div>
 
+        @php
+            $ageRatingLabel = $catalogGame->ageRatingLabel();
+        @endphp
+        @if (! empty($catalogGame->genres) || ! empty($catalogGame->platforms) || $ageRatingLabel)
+            <div class="mt-5 space-y-3" data-rawg-metadata>
+                @if (! empty($catalogGame->genres))
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="mr-1 text-xs font-bold uppercase tracking-[.14em] text-slate-500">Жанры</span>
+                        @foreach ($catalogGame->genres as $index => $genre)
+                            @php
+                                $genreSlug = $catalogGame->genre_slugs[$index] ?? null;
+                            @endphp
+                            @if ($genreSlug)
+                                <a href="{{ route('search.index', ['genre' => $genreSlug, 'genre_name' => $genre]) }}" class="status-chip transition hover:border-violet-400/40 hover:bg-violet-500/15 hover:text-violet-100" title="Найти игры жанра {{ $genre }}">{{ $genre }}</a>
+                            @else
+                                <span class="status-chip">{{ $genre }}</span>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
+                @if (! empty($catalogGame->platforms))
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="mr-1 text-xs font-bold uppercase tracking-[.14em] text-slate-500">Платформы</span>
+                        @foreach ($catalogGame->platforms as $index => $platform)
+                            @php
+                                $platformId = $catalogGame->platform_ids[$index] ?? null;
+                            @endphp
+                            @if ($platformId)
+                                <a href="{{ route('search.index', ['platform' => $platformId, 'platform_name' => $platform]) }}" class="status-chip transition hover:border-cyan-400/35 hover:bg-cyan-500/10 hover:text-cyan-100" title="Найти игры для {{ $platform }}">{{ $platform }}</a>
+                            @else
+                                <span class="status-chip">{{ $platform }}</span>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
+                @if ($ageRatingLabel)
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="mr-1 text-xs font-bold uppercase tracking-[.14em] text-slate-500">Возраст</span>
+                        <span class="inline-grid min-h-10 min-w-10 place-items-center rounded-xl border border-amber-300/35 bg-amber-400/10 px-2 text-sm font-extrabold text-amber-100 shadow-lg shadow-amber-950/20" title="Возрастной рейтинг {{ $ageRatingLabel }}" aria-label="Возрастной рейтинг {{ $ageRatingLabel }}" data-age-rating="{{ $ageRatingLabel }}">{{ $ageRatingLabel }}</span>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         <div class="mt-7 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
             @foreach (\App\Enums\GameStatus::cases() as $status)
                 @php
@@ -103,6 +147,45 @@
         </div>
     </div>
 </section>
+
+@if (! empty($catalogGame->screenshots))
+    <section class="mt-10" data-game-screenshots>
+        <div class="mb-5">
+            <span class="eyebrow"><span class="material-symbols-outlined">photo_library</span> Скриншоты</span>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            @foreach ($catalogGame->screenshots as $index => $screenshot)
+                <button type="button" class="glass group block aspect-video w-full cursor-zoom-in overflow-hidden rounded-2xl text-left" data-screenshot-open data-screenshot-index="{{ $index }}" data-screenshot-url="{{ $screenshot }}" data-screenshot-alt="Скриншот {{ $index + 1 }} из игры {{ $catalogGame->title }}" aria-label="Открыть скриншот {{ $index + 1 }}">
+                    <img src="{{ $screenshot }}" alt="Скриншот {{ $index + 1 }} из игры {{ $catalogGame->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" loading="lazy">
+                </button>
+            @endforeach
+        </div>
+    </section>
+
+    @push('modals')
+        <div class="fixed inset-0 z-[70] hidden items-center justify-center p-4 sm:p-8" role="dialog" aria-modal="true" aria-label="Просмотр скриншотов" aria-hidden="true" data-screenshot-modal>
+            <button type="button" class="absolute inset-0 cursor-zoom-out bg-black/85 backdrop-blur-md" aria-label="Закрыть просмотр скриншота" data-screenshot-close></button>
+            <div class="relative z-10 flex max-h-full w-full max-w-6xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#080a12] shadow-2xl shadow-black/70">
+                <div class="relative min-h-0 flex-1 bg-black/40">
+                    <img src="" alt="" class="max-h-[80vh] min-h-48 w-full object-contain sm:min-h-80" data-screenshot-modal-image>
+                    <button type="button" class="absolute top-3 right-3 grid size-11 cursor-pointer place-items-center rounded-xl border border-white/15 bg-black/65 text-white backdrop-blur transition hover:bg-black/85" aria-label="Закрыть" data-screenshot-close>
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                    <button type="button" class="absolute top-1/2 left-3 grid size-11 -translate-y-1/2 cursor-pointer place-items-center rounded-xl border border-white/15 bg-black/65 text-white backdrop-blur transition hover:bg-black/85" aria-label="Предыдущий скриншот" data-screenshot-previous>
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <button type="button" class="absolute top-1/2 right-3 grid size-11 -translate-y-1/2 cursor-pointer place-items-center rounded-xl border border-white/15 bg-black/65 text-white backdrop-blur transition hover:bg-black/85" aria-label="Следующий скриншот" data-screenshot-next>
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </div>
+                <div class="flex items-center justify-between gap-4 border-t border-white/10 px-4 py-3 text-xs text-slate-400 sm:px-5">
+                    <span class="truncate" data-screenshot-caption></span>
+                    <span class="shrink-0 font-bold text-slate-300" data-screenshot-counter></span>
+                </div>
+            </div>
+        </div>
+    @endpush
+@endif
 
 <section class="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
     <div class="panel">

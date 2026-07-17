@@ -59,6 +59,10 @@ class CatalogBrowserTest extends TestCase
             ->assertSee('href="'.route('games.show', $catalogGame).'"', false)
             ->assertSee('aria-label="Открыть страницу игры Public Search Game"', false)
             ->assertSee('data-catalog-list-picker', false)
+            ->assertSee('data-catalog-browser-genre', false)
+            ->assertSee('data-catalog-browser-platform', false)
+            ->assertSee('Все жанры')
+            ->assertSee('Все платформы')
             ->assertSee('data-login-url="'.route('login').'"', false)
             ->assertSee('href="'.route('search.index').'"', false);
 
@@ -66,6 +70,28 @@ class CatalogBrowserTest extends TestCase
             ->assertOk()
             ->assertJsonPath('count', 1)
             ->assertSee('Public Search Game');
+    }
+
+    public function test_search_filter_dropdowns_use_cached_rawg_metadata_and_keep_selected_values(): void
+    {
+        CatalogGame::create([
+            'rawg_id' => 200,
+            'title' => 'Filtered Game',
+            'normalized_title' => 'filtered game',
+            'genres' => ['RPG', 'Action'],
+            'genre_slugs' => ['role-playing-games-rpg', 'action'],
+            'platforms' => ['PC', 'PlayStation 5'],
+            'platform_ids' => [4, 187],
+        ]);
+
+        $this->get(route('search.index', [
+            'genre' => 'role-playing-games-rpg',
+            'platform' => 4,
+        ]))->assertOk()
+            ->assertSee('<option value="role-playing-games-rpg" selected>RPG</option>', false)
+            ->assertSee('<option value="4" selected>PC</option>', false)
+            ->assertSeeInOrder(['Action', 'RPG'])
+            ->assertSeeInOrder(['PC', 'PlayStation 5']);
     }
 
     public function test_global_search_opens_the_authenticated_users_lists_after_plus_click(): void

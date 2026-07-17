@@ -19,6 +19,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileFavoriteController;
 use App\Http\Controllers\PublicListController;
 use App\Http\Controllers\PublicProfileController;
+use App\Http\Controllers\RawgCatalogSearchController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,7 @@ Route::get('/search', [CatalogBrowserController::class, 'search'])->name('search
 Route::get('/search/results', [CatalogBrowserController::class, 'searchResults'])->middleware('throttle:120,1')->name('search.results');
 Route::get('/catalog/search/cached', [CatalogSearchController::class, 'cached'])->middleware('throttle:120,1')->name('catalog.cached');
 Route::get('/catalog/search', [CatalogSearchController::class, 'fresh'])->middleware('throttle:30,1')->name('catalog.search');
+Route::get('/catalog/search/rawg', RawgCatalogSearchController::class)->middleware('throttle:30,1')->name('catalog.rawg-search');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');

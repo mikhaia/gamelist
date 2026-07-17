@@ -22,6 +22,13 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'rawg' => [
+        'key' => env('RAWG_API_KEY'),
+        'base_url' => env('RAWG_API_URL', 'https://api.rawg.io/api'),
+        'sync_ttl_days' => (int) env('RAWG_SYNC_TTL_DAYS', 30),
+        'search_ttl_hours' => (int) env('RAWG_SEARCH_TTL_HOURS', 6),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
