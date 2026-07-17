@@ -29,26 +29,21 @@
     @endif
 </section>
 
-<section class="mt-10">
-    <div class="mb-4 flex items-center justify-between gap-4">
-        <div>
-            <h2 class="text-xl font-extrabold">Со мной хотят дружить</h2>
-            <p class="muted mt-1">Пользователи, которые добавили вас, но пока не добавлены вами.</p>
+@if ($incoming->isNotEmpty())
+    <section class="mt-10">
+        <div class="mb-4 flex items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-extrabold">Со мной хотят дружить</h2>
+                <p class="muted mt-1">Пользователи, которые добавили вас, но пока не добавлены вами.</p>
+            </div>
+            <span class="status-chip">{{ $incoming->count() }}</span>
         </div>
-        @if ($incoming->isNotEmpty())<span class="status-chip">{{ $incoming->count() }}</span>@endif
-    </div>
 
-    @if ($incoming->isEmpty())
-        <div class="panel py-10 text-center">
-            <span class="material-symbols-outlined text-5xl text-cyan-300/30">groups</span>
-            <p class="muted mt-3">Новых входящих добавлений пока нет.</p>
-        </div>
-    @else
         <div class="grid gap-4 xl:grid-cols-2">
             @foreach ($incoming as $person)
                 <x-profile-card :user="$person" :stats="$statsByUser[$person->id]" :is-friend="false" compact />
             @endforeach
         </div>
-    @endif
-</section>
+    </section>
+@endif
 @endsection

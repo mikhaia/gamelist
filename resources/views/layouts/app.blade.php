@@ -13,14 +13,14 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
-    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260717-4" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260717-5" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {
             font-family: 'Material Symbols Outlined';
             font-style: normal;
             font-weight: 400;
             font-display: block;
-            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260717-4') format('woff2');
+            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260717-5') format('woff2');
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">

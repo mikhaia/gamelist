@@ -62,6 +62,7 @@ class FriendshipTest extends TestCase
         $this->actingAs($user)->get(route('friends.index'))
             ->assertOk()
             ->assertSee('@chrono')
-            ->assertSee('Новых входящих добавлений пока нет.');
+            ->assertDontSee('Со мной хотят дружить')
+            ->assertDontSee('Новых входящих добавлений пока нет.');
     }
 }

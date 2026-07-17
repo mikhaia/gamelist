@@ -46,6 +46,7 @@ schedule
 search
 search_off
 settings
+sort
 sports_esports
 stadia_controller
 travel_explore
