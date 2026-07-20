@@ -34,11 +34,21 @@
             @endif
 
             @if (collect($stats['statuses'])->filter()->isNotEmpty())
-                <div class="mt-3 flex flex-wrap gap-2 border-t border-white/10 pt-3">
+                @php($statusIconClasses = [
+                    'want_to_play' => 'bg-violet-500/10 text-violet-300',
+                    'installed' => 'bg-sky-500/10 text-sky-300',
+                    'playing' => 'bg-cyan-500/10 text-cyan-300',
+                    'completed' => 'bg-amber-500/10 text-amber-300',
+                    'dropped' => 'bg-rose-500/10 text-rose-300',
+                ])
+                <div class="mt-3 flex flex-wrap gap-5 border-t border-white/10 pt-3">
                     @foreach (\App\Enums\GameStatus::cases() as $status)
                         @if ($stats['statuses'][$status->value])
-                            <span class="rounded-full border border-violet-400/15 bg-violet-500/10 px-2.5 py-1 text-xs font-semibold text-violet-200">
-                                {{ __('app.profile_statuses.'.$status->value) }} · {{ $stats['statuses'][$status->value] }}
+                            <span class="inline-flex items-center gap-2" title="{{ $status->label() }}" aria-label="{{ $status->label() }}: {{ $stats['statuses'][$status->value] }}">
+                                <span class="grid size-12 shrink-0 place-items-center rounded-2xl {{ $statusIconClasses[$status->value] }}">
+                                    <span class="material-symbols-outlined text-2xl" aria-hidden="true">{{ $status->icon() }}</span>
+                                </span>
+                                <strong class="text-base font-extrabold text-white">{{ $stats['statuses'][$status->value] }}</strong>
                             </span>
                         @endif
                     @endforeach

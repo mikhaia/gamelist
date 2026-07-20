@@ -137,7 +137,8 @@ class SocialProfileTest extends TestCase
             ->assertDontSee('Private Games')
             ->assertSeeText('1 публичный список')
             ->assertSeeText('1 игра')
-            ->assertSeeText('Играю · 1')
+            ->assertSee('aria-label="Играю: 1"', false)
+            ->assertSee('sports_esports')
             ->assertDontSeeText('Пройдено · 1');
     }
 
