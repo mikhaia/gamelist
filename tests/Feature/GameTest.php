@@ -62,6 +62,30 @@ class GameTest extends TestCase
         Storage::disk('public')->assertExists($game->cover_path);
     }
 
+    public function test_game_can_be_moved_to_another_of_the_users_lists(): void
+    {
+        $user = User::factory()->create();
+        $sourceList = $user->gameLists()->create([
+            'name' => 'Switch', 'slug' => 'switch', 'default_platform' => 'nintendo_switch',
+        ]);
+        $targetList = $user->gameLists()->create([
+            'name' => 'PC', 'slug' => 'pc', 'default_platform' => 'pc',
+        ]);
+        $game = $sourceList->games()->create([
+            'title' => 'Hades II', 'normalized_title' => 'hades ii', 'status' => 'want_to_play',
+            'platform' => 'nintendo_switch',
+        ]);
+
+        $this->actingAs($user)->put(route('games.update', $game), [
+            'title' => 'Hades II',
+            'status' => 'want_to_play',
+            'platform' => 'nintendo_switch',
+            'game_list_id' => $targetList->id,
+        ])->assertRedirect(route('lists.show', $targetList));
+
+        $this->assertSame($targetList->id, $game->fresh()->game_list_id);
+    }
+
     public function test_status_changes_fill_missing_started_and_completed_dates(): void
     {
         $user = User::factory()->create();

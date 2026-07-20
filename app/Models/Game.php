@@ -16,7 +16,7 @@ class Game extends Model
     use HasFactory;
 
     protected $fillable = [
-        'catalog_game_id', 'title', 'normalized_title', 'status', 'platform', 'started_at', 'completed_at', 'hltb_id', 'cover_path',
+        'game_list_id', 'catalog_game_id', 'title', 'normalized_title', 'status', 'platform', 'started_at', 'completed_at', 'hltb_id', 'cover_path',
         'source_cover_url', 'main_story_minutes', 'main_extra_minutes',
         'completionist_minutes', 'notes', 'sort_order',
     ];

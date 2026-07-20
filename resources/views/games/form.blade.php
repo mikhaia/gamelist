@@ -107,6 +107,19 @@
                     </div>
                 </div>
 
+                @if ($editing)
+                    <div>
+                        <label class="label" for="game_list_id">Список</label>
+                        <select class="field" id="game_list_id" name="game_list_id">
+                            @foreach ($gameLists as $list)
+                                <option value="{{ $list->id }}" @selected((string) old('game_list_id', $gameList->id) === (string) $list->id)>{{ $list->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1.5 text-xs text-slate-500">Игра будет перенесена в выбранный список.</p>
+                        @error('game_list_id') <p class="field-error">{{ $message }}</p> @enderror
+                    </div>
+                @endif
+
                 <div>
                     <label class="label" for="notes">Заметки</label>
                     <textarea class="field min-h-24" id="notes" name="notes" placeholder="Необязательно">{{ old('notes', $game->notes) }}</textarea>

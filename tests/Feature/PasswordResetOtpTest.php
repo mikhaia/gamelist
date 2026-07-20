@@ -104,6 +104,24 @@ class PasswordResetOtpTest extends TestCase
         $this->assertDatabaseCount('password_reset_otps', 0);
     }
 
+    public function test_requesting_a_new_code_prunes_expired_codes(): void
+    {
+        Mail::fake();
+        $this->withoutDefer();
+        User::factory()->create(['email' => 'player@example.com']);
+        PasswordResetOtp::query()->create([
+            'email' => 'expired@example.com',
+            'code_hash' => Hash::make('123456'),
+            'attempts' => 0,
+            'expires_at' => now()->subMinute(),
+        ]);
+
+        $this->post(route('password.email'), ['email' => 'player@example.com'])
+            ->assertRedirect(route('password.otp'));
+
+        $this->assertDatabaseMissing('password_reset_otps', ['email' => 'expired@example.com']);
+    }
+
     public function test_code_is_rejected_after_five_wrong_attempts(): void
     {
         Mail::fake();

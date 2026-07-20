@@ -6,6 +6,7 @@ use App\Mail\InactivePlayerMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -67,6 +68,23 @@ class InactiveReminderTest extends TestCase
 
         Mail::assertSent(InactivePlayerMail::class, fn (InactivePlayerMail $mail): bool => $mail->playingGames->isEmpty()
             && str_contains($mail->render(), 'Во что вы играете сейчас?'));
+    }
+
+    public function test_inactive_reminders_run_after_a_regular_web_request(): void
+    {
+        Mail::fake();
+        $this->withoutDefer();
+        Cache::forget('maintenance:inactive-reminders-ran');
+        $inactiveUser = User::factory()->create([
+            'email' => 'inactive@example.com',
+            'last_seen_at' => now()->subMonths(2),
+        ]);
+        $visitor = User::factory()->create();
+
+        $this->actingAs($visitor)->get(route('home'))->assertOk();
+
+        Mail::assertSent(InactivePlayerMail::class, fn (InactivePlayerMail $mail): bool => $mail->recipient->is($inactiveUser));
+        $this->assertNotNull($inactiveUser->fresh()->inactive_reminder_sent_at);
     }
 
     public function test_authenticated_visit_resets_the_inactivity_cycle(): void

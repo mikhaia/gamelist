@@ -168,12 +168,12 @@ Observers регистрируются в `AppServiceProvider`:
 
 OTP: 6 цифр, 10 минут, максимум 5 проверок; выдача ограничена 3 запросами в минуту на email. При успешном сбросе удаляются остальные сессии пользователя.
 
-Планировщик (`routes/console.php`):
+Фоновые задачи без cron:
 
-- ежедневно 09:00 — `gamelist:send-inactive-reminders`;
-- ежедневно — удаление просроченных OTP.
+- после обычного веб-запроса, но не чаще раза в сутки — письма неактивным пользователям;
+- при выдаче нового OTP — удаление всех просроченных OTP.
 
-На production обязателен cron `php artisan schedule:run` каждую минуту. Нужны `MAIL_MAILER=resend`, `RESEND_API_KEY`, корректные `MAIL_FROM_ADDRESS` и `APP_URL`; ключ хранить только в окружении.
+Cron на production не требуется. Нужны `MAIL_MAILER=resend`, `RESEND_API_KEY`, корректные `MAIL_FROM_ADDRESS` и `APP_URL`; ключ хранить только в окружении.
 
 ## 11. Frontend и Material Symbols
 
@@ -236,7 +236,7 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-Также проверить права на `storage` и `bootstrap/cache`, MySQL, PHP GD, cron планировщика, Resend и соответствие `APP_URL` публичному домену. На сервере не запускать npm; использовать уже собранный `public/build`.
+Также проверить права на `storage` и `bootstrap/cache`, MySQL, PHP GD, Resend и соответствие `APP_URL` публичному домену. На сервере не запускать npm; использовать уже собранный `public/build`.
 
 ## 14. Тестовая карта
 

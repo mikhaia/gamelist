@@ -56,7 +56,9 @@ class GameController extends Controller
     public function update(Request $request, Game $game): RedirectResponse
     {
         $this->authorizeGame($request, $game);
-        $validated = $this->validated($request, $game->gameList, $game);
+        $gameList = $this->selectedList($request, $game->gameList);
+        $validated = $this->validated($request, $gameList, $game);
+        $validated['game_list_id'] = $gameList->id;
         $validated['normalized_title'] = $this->normalizer->normalize($validated['title']);
 
         if ($request->hasFile('cover') || $request->filled('cover_url') || $request->filled('catalog_cover_url')) {
@@ -64,9 +66,10 @@ class GameController extends Controller
             $validated['source_cover_url'] = $request->input('cover_url') ?: $request->input('catalog_cover_url');
         }
 
+        $game->unsetRelation('gameList');
         $game->update($validated);
 
-        return redirect()->route('lists.show', $game->gameList)->with('success', __('app.messages.game_updated'));
+        return redirect()->route('lists.show', $gameList)->with('success', __('app.messages.game_updated'));
     }
 
     public function status(Request $request, Game $game): JsonResponse|RedirectResponse
@@ -118,6 +121,9 @@ class GameController extends Controller
             'gameList' => $gameList,
             'game' => $game,
             'statuses' => $gameList->availableStatuses(),
+            'gameLists' => $game->exists
+                ? $request->user()->gameLists()->orderBy('name')->get()
+                : collect(),
             'platforms' => Platform::cases(),
             'results' => $results,
             'query' => $query,
@@ -171,6 +177,22 @@ class GameController extends Controller
         }
 
         return $oldPath;
+    }
+
+    private function selectedList(Request $request, GameList $currentList): GameList
+    {
+        if (! $request->filled('game_list_id')) {
+            return $currentList;
+        }
+
+        $validated = $request->validate([
+            'game_list_id' => [
+                'required',
+                Rule::exists('game_lists', 'id')->where('user_id', $request->user()->id),
+            ],
+        ]);
+
+        return $request->user()->gameLists()->findOrFail($validated['game_list_id']);
     }
 
     private function authorizeList(Request $request, GameList $gameList): void

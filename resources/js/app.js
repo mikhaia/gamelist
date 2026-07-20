@@ -591,15 +591,10 @@ function updateGameDates(item, data) {
     ]) {
         const date = item.querySelector(selector);
         if (!date) continue;
-        date.classList.toggle('hidden', !value);
+        date.classList.toggle('invisible', !value);
         const dateValue = date.querySelector('[data-game-date-value]');
         if (dateValue) dateValue.textContent = formatGameDate(value);
     }
-
-    item.querySelector('[data-game-dates]')?.classList.toggle(
-        'hidden',
-        !data.started_at && !data.completed_at,
-    );
 }
 
 function updateGameStatusItem(form, data) {

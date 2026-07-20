@@ -55,13 +55,13 @@
                                         </h3>
                                         <p class="mt-1.5 truncate text-[10px] font-semibold text-slate-500">{{ $game->platform->label() }}</p>
                                         @if ($game->main_story_minutes)
-                                            <p class="mt-2 flex items-center gap-1 text-[10px] text-slate-400"><span class="material-symbols-outlined text-xs">schedule</span>{{ $game->formattedTime($game->main_story_minutes) }}</p>
+                                            <p class="mt-2 flex items-center gap-1 text-slate-400"><span class="material-symbols-outlined text-xs">schedule</span>{{ $game->formattedTime($game->main_story_minutes) }}</p>
                                         @endif
                                     </div>
                                 </div>
 
                                 @if ($game->started_at || $game->completed_at || ! $readonly)
-                                    <div class="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t border-white/7 pt-2.5 text-[10px] text-slate-500 {{ $game->started_at || $game->completed_at ? '' : 'hidden' }}" data-game-dates>
+                                    <div class="mt-3 flex flex-wrap justify-between gap-x-3 gap-y-1 border-t border-white/7 pt-2.5 text-[12px] text-slate-500 {{ $game->started_at || $game->completed_at ? '' : 'hidden' }}" data-game-dates>
                                         <span class="{{ $game->started_at ? '' : 'hidden' }}" data-game-started-date>Начал <span data-game-date-value>{{ $game->started_at?->format('d.m.Y') }}</span></span>
                                         <span class="{{ $game->completed_at ? '' : 'hidden' }}" data-game-completed-date>Закончил <span data-game-date-value>{{ $game->completed_at?->format('d.m.Y') }}</span></span>
                                     </div>
@@ -169,15 +169,13 @@
                         @endif
                     </h3>
                     <p class="mt-2 truncate text-[11px] font-semibold text-slate-500">{{ $game->platform->label() }}</p>
-                    @if ($game->main_story_minutes)
-                        <p class="mt-2 flex items-center gap-1.5 text-[11px] text-slate-400"><span class="material-symbols-outlined text-sm">schedule</span>{{ $game->formattedTime($game->main_story_minutes) }}</p>
-                    @endif
-                    @if ($game->started_at || $game->completed_at || ! $readonly)
-                        <div class="mt-2 space-y-1 text-[10px] text-slate-500 {{ $game->started_at || $game->completed_at ? '' : 'hidden' }}" data-game-dates>
-                            <p class="flex items-center gap-1 {{ $game->started_at ? '' : 'hidden' }}" data-game-started-date><span class="material-symbols-outlined text-xs">play_circle</span><span data-game-date-value>{{ $game->started_at?->format('d.m.Y') }}</span></p>
-                            <p class="flex items-center gap-1 {{ $game->completed_at ? '' : 'hidden' }}" data-game-completed-date><span class="material-symbols-outlined text-xs">flag</span><span data-game-date-value>{{ $game->completed_at?->format('d.m.Y') }}</span></p>
+                    <div class="mt-2 h-[84px]" data-game-meta>
+                        <p class="flex items-center gap-1.5 text-slate-400 {{ $game->main_story_minutes ? '' : 'invisible' }}"><span class="material-symbols-outlined text-sm">schedule</span>{{ $game->formattedTime($game->main_story_minutes) }}</p>
+                        <div class="mt-2 space-y-1 text-[12px] text-slate-500" data-game-dates>
+                            <p class="flex items-center gap-1 {{ $game->started_at ? '' : 'invisible' }}" data-game-started-date><span class="material-symbols-outlined">play_circle</span><span data-game-date-value>{{ $game->started_at?->format('d.m.Y') }}</span></p>
+                            <p class="flex items-center gap-1 {{ $game->completed_at ? '' : 'invisible' }}" data-game-completed-date><span class="material-symbols-outlined">flag</span><span data-game-date-value>{{ $game->completed_at?->format('d.m.Y') }}</span></p>
                         </div>
-                    @endif
+                    </div>
                     @if ($readonly)
                         <span class="status-chip mt-3 max-w-full"><span class="material-symbols-outlined text-sm">{{ $game->status->icon() }}</span><span class="truncate">{{ $game->status->label() }}</span></span>
                     @else

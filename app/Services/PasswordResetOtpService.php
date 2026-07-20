@@ -27,6 +27,8 @@ class PasswordResetOtpService
             return;
         }
 
+        PasswordResetOtp::query()->where('expires_at', '<', now())->delete();
+
         PasswordResetOtp::query()->updateOrCreate(
             ['email' => $email],
             [
