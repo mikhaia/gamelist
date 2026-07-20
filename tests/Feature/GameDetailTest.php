@@ -163,6 +163,34 @@ class GameDetailTest extends TestCase
         $screenshots->each(fn (GameScreenshot $screenshot) => Storage::disk('public')->assertMissing($screenshot->path));
     }
 
+    public function test_catalog_page_shows_screenshots_from_public_user_game_entries(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->create(['login' => 'screenshot_owner']);
+        $catalogGame = CatalogGame::query()->create([
+            'hltb_id' => 31415,
+            'title' => 'Control',
+            'normalized_title' => 'control',
+        ]);
+        $publicGame = $this->gameFor($owner, true, ['catalog_game_id' => $catalogGame->id]);
+        $privateGame = $this->gameFor($owner, false, ['catalog_game_id' => $catalogGame->id]);
+        $publicScreenshot = $publicGame->screenshots()->create([
+            'path' => 'game-screenshots/public.jpg',
+            'sort_order' => 1,
+        ]);
+        $privateScreenshot = $privateGame->screenshots()->create([
+            'path' => 'game-screenshots/private.jpg',
+            'sort_order' => 1,
+        ]);
+
+        $this->get(route('games.show', $catalogGame))
+            ->assertOk()
+            ->assertSee('data-game-screenshots', false)
+            ->assertSee('data-screenshot-url="'.$publicScreenshot->url.'"', false)
+            ->assertSee('Скриншот screenshot_owner из игры Control')
+            ->assertDontSee($privateScreenshot->url, false);
+    }
+
     public function test_comments_notify_recipients_and_owner_can_hide_them(): void
     {
         $owner = User::factory()->create(['login' => 'owner']);

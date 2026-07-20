@@ -148,15 +148,18 @@
     </div>
 </section>
 
-@if (! empty($catalogGame->screenshots))
+@if ($screenshots->isNotEmpty())
     <section class="mt-10" data-game-screenshots>
         <div class="mb-5">
             <span class="eyebrow"><span class="material-symbols-outlined">photo_library</span> Скриншоты</span>
         </div>
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            @foreach ($catalogGame->screenshots as $index => $screenshot)
-                <button type="button" class="glass group block aspect-video w-full cursor-zoom-in overflow-hidden rounded-2xl text-left" data-screenshot-open data-screenshot-index="{{ $index }}" data-screenshot-url="{{ $screenshot }}" data-screenshot-alt="Скриншот {{ $index + 1 }} из игры {{ $catalogGame->title }}" aria-label="Открыть скриншот {{ $index + 1 }}">
-                    <img src="{{ $screenshot }}" alt="Скриншот {{ $index + 1 }} из игры {{ $catalogGame->title }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" loading="lazy">
+            @foreach ($screenshots as $index => $screenshot)
+                <button type="button" class="glass group relative block aspect-video w-full cursor-zoom-in overflow-hidden rounded-2xl text-left" data-screenshot-open data-screenshot-index="{{ $index }}" data-screenshot-url="{{ $screenshot['url'] }}" data-screenshot-alt="{{ $screenshot['caption'] }}" aria-label="Открыть: {{ $screenshot['caption'] }}">
+                    <img src="{{ $screenshot['url'] }}" alt="{{ $screenshot['caption'] }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" loading="lazy">
+                    @if ($screenshot['user'])
+                        <span class="absolute right-2 bottom-2 max-w-[calc(100%-1rem)] truncate rounded-lg bg-black/70 px-2.5 py-1.5 text-[11px] font-bold text-white/90 backdrop-blur">{{ $screenshot['caption'] }}</span>
+                    @endif
                 </button>
             @endforeach
         </div>

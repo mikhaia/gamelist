@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\GameStatus;
 use App\Models\CatalogGame;
 use App\Models\Game;
+use App\Models\GameScreenshot;
 use App\Services\RawgCatalogEnricher;
 use App\Services\ReviewMarkdown;
 use Illuminate\Http\Request;
@@ -50,6 +51,29 @@ class GamePageController extends Controller
                 ->whereHas('gameList', fn ($query) => $query->where('user_id', $user->id))
                 ->pluck('game_list_id')
             : collect();
+        $userScreenshots = GameScreenshot::query()
+            ->whereHas('game', function ($query) use ($catalogGame, $user): void {
+                $query->where('catalog_game_id', $catalogGame->id)
+                    ->whereHas('gameList', function ($query) use ($user): void {
+                        $query->where('is_public', true)
+                            ->when($user, fn ($query) => $query->orWhere('user_id', $user->id));
+                    });
+            })
+            ->with('game.gameList.user')
+            ->latest()
+            ->get();
+        $screenshots = collect($catalogGame->screenshots ?? [])
+            ->map(fn (string $url, int $index): array => [
+                'url' => $url,
+                'caption' => "Скриншот ".($index + 1)." из игры {$catalogGame->title}",
+                'user' => null,
+            ])
+            ->concat($userScreenshots->map(fn (GameScreenshot $screenshot): array => [
+                'url' => $screenshot->url,
+                'caption' => "Скриншот {$screenshot->game->gameList->user->login} из игры {$catalogGame->title}",
+                'user' => $screenshot->game->gameList->user,
+            ]))
+            ->values();
 
         return view('games.show', [
             'catalogGame' => $catalogGame,
@@ -63,6 +87,7 @@ class GamePageController extends Controller
             'userLists' => $userLists,
             'availableLists' => $userLists->whereNotIn('id', $addedListIds),
             'addedListsCount' => $addedListIds->count(),
+            'screenshots' => $screenshots,
         ]);
     }
 }
