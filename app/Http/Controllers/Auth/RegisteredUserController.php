@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AchievementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,8 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
+    public function __construct(private readonly AchievementService $achievements) {}
+
     public function create(): View
     {
         return view('auth.register');
@@ -33,7 +36,7 @@ class RegisteredUserController extends Controller
         $validated = $request->validate([
             'login' => [
                 'required', 'string', 'min:3', 'max:32', 'regex:/^[a-zA-Z0-9_]+$/',
-                Rule::notIn(['catalog', 'friend', 'friends', 'game', 'games', 'history', 'lists', 'login', 'logout', 'notifications', 'profile', 'register', 'search', 'settings', 'up']),
+                Rule::notIn(['achievements', 'catalog', 'friend', 'friends', 'game', 'games', 'history', 'lists', 'login', 'logout', 'notifications', 'profile', 'register', 'search', 'settings', 'up']),
                 'unique:users,login',
             ],
             'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -51,6 +54,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        $this->achievements->evaluate($user);
 
         return redirect()->route('lists.index')->with('success', __('app.messages.registered'));
     }

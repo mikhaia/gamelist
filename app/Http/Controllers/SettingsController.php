@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AchievementService;
 use App\Services\CoverImageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,7 +12,10 @@ use Illuminate\View\View;
 
 class SettingsController extends Controller
 {
-    public function __construct(private readonly CoverImageService $images) {}
+    public function __construct(
+        private readonly AchievementService $achievements,
+        private readonly CoverImageService $images,
+    ) {}
 
     public function edit(): View
     {
@@ -32,6 +36,7 @@ class SettingsController extends Controller
             512,
         );
         $request->user()->update(['avatar_path' => $path]);
+        $this->achievements->evaluate($request->user());
 
         return back()->with('success', __('app.messages.avatar_updated'));
     }
@@ -54,6 +59,7 @@ class SettingsController extends Controller
         ]);
 
         $request->user()->update(['email' => $validated['email'] ?? null]);
+        $this->achievements->evaluate($request->user());
 
         return back()->with('success', __('app.messages.email_updated'));
     }

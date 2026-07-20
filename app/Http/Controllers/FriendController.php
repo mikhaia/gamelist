@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Friendship;
 use App\Models\User;
+use App\Services\AchievementService;
 use App\Services\SocialNotificationService;
 use App\Services\UserMailService;
 use App\Services\UserProfileStats;
@@ -14,6 +15,7 @@ use Illuminate\View\View;
 class FriendController extends Controller
 {
     public function __construct(
+        private readonly AchievementService $achievements,
         private readonly SocialNotificationService $notifications,
         private readonly UserProfileStats $profileStats,
         private readonly UserMailService $mail,
@@ -22,10 +24,12 @@ class FriendController extends Controller
     public function index(Request $request): View
     {
         $friends = $request->user()->friends()
+            ->with('achievements')
             ->orderByDesc('friendships.created_at')
             ->get();
         $friendIds = $friends->modelKeys();
         $incoming = $request->user()->followers()
+            ->with('achievements')
             ->when($friendIds !== [], fn ($query) => $query->whereNotIn('users.id', $friendIds))
             ->orderByDesc('friendships.created_at')
             ->get();
@@ -57,6 +61,7 @@ class FriendController extends Controller
                 'person_add',
             );
             $this->mail->sendFriendAdded($friend, $actor);
+            $this->achievements->evaluate($actor);
         }
 
         return back()->with('success', __('app.messages.friend_added'));

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CatalogGame;
+use App\Services\AchievementService;
 use App\Services\ReviewMarkdown;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -11,7 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class GameReviewController extends Controller
 {
-    public function __construct(private readonly ReviewMarkdown $markdown) {}
+    public function __construct(
+        private readonly AchievementService $achievements,
+        private readonly ReviewMarkdown $markdown,
+    ) {}
 
     public function update(Request $request, CatalogGame $catalogGame): RedirectResponse
     {
@@ -32,6 +36,7 @@ class GameReviewController extends Controller
             ['user_id' => $request->user()->id],
             ['rating' => $rating, 'body' => $body],
         );
+        $this->achievements->evaluate($request->user());
 
         return redirect()->route('games.show', $catalogGame)
             ->with('success', __('app.messages.review_saved'));

@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Enums\GameStatus;
 use App\Models\Game;
+use App\Services\AchievementService;
 use App\Services\CatalogGameResolver;
 use App\Services\SocialNotificationService;
 
@@ -12,6 +13,7 @@ class GameObserver
     public function __construct(
         private readonly SocialNotificationService $notifications,
         private readonly CatalogGameResolver $catalogGames,
+        private readonly AchievementService $achievements,
     ) {}
 
     public function saving(Game $game): void
@@ -22,18 +24,19 @@ class GameObserver
     public function created(Game $game): void
     {
         $game->loadMissing('gameList.user');
-        if (! $game->gameList->is_public) {
-            return;
+        $owner = $game->gameList->user;
+
+        if ($game->gameList->is_public) {
+            $this->notifications->notifyFollowers(
+                $owner,
+                'public_game_added',
+                "@{$owner->login} добавил игру «{$game->title}» в публичный список «{$game->gameList->name}».",
+                $this->publicListUrl($game),
+                'sports_esports',
+            );
         }
 
-        $owner = $game->gameList->user;
-        $this->notifications->notifyFollowers(
-            $owner,
-            'public_game_added',
-            "@{$owner->login} добавил игру «{$game->title}» в публичный список «{$game->gameList->name}».",
-            $this->publicListUrl($game),
-            'sports_esports',
-        );
+        $this->achievements->evaluate($owner);
     }
 
     public function updated(Game $game): void
@@ -84,6 +87,8 @@ class GameObserver
                 );
             }
         }
+
+        $this->achievements->evaluate($owner);
     }
 
     private function publicListUrl(Game $game): string

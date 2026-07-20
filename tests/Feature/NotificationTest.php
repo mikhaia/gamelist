@@ -35,11 +35,11 @@ class NotificationTest extends TestCase
         $game->update(['status' => 'completed']);
 
         $this->assertEqualsCanonicalizing(
-            ['public_list_created', 'public_game_added', 'friend_started_game', 'friend_completed_game'],
+            ['public_list_created', 'public_game_added', 'friend_started_game', 'friend_completed_game', 'friend_achievement_unlocked', 'friend_achievement_unlocked'],
             $follower->notifications()->get()->pluck('data.event')->all(),
         );
         $this->assertEqualsCanonicalizing(
-            ['good_luck', 'congratulations'],
+            ['good_luck', 'congratulations', 'achievement_unlocked', 'achievement_unlocked'],
             $owner->notifications()->get()->pluck('data.event')->all(),
         );
         $this->assertDatabaseMissing('notifications', [
@@ -68,8 +68,14 @@ class NotificationTest extends TestCase
 
         $game->update(['status' => 'playing']);
 
-        $this->assertCount(0, $follower->notifications);
-        $this->assertSame('good_luck', $owner->notifications()->firstOrFail()->data['event']);
+        $this->assertSame(
+            ['friend_achievement_unlocked'],
+            $follower->notifications()->get()->pluck('data.event')->all(),
+        );
+        $this->assertEqualsCanonicalizing(
+            ['good_luck', 'achievement_unlocked'],
+            $owner->notifications()->get()->pluck('data.event')->all(),
+        );
     }
 
     public function test_user_can_delete_one_notification_and_clear_the_rest(): void

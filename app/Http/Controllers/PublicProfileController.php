@@ -17,6 +17,7 @@ class PublicProfileController extends Controller
     {
         $profile = User::query()
             ->where('login', strtolower($login))
+            ->with('achievements')
             ->firstOrFail();
         $publicLists = $profile->gameLists()
             ->where('is_public', true)

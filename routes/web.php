@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\OtpPasswordResetController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -32,6 +33,7 @@ Route::get('/search/results', [CatalogBrowserController::class, 'searchResults']
 Route::get('/catalog/search/cached', [CatalogSearchController::class, 'cached'])->middleware('throttle:120,1')->name('catalog.cached');
 Route::get('/catalog/search', [CatalogSearchController::class, 'fresh'])->middleware('throttle:30,1')->name('catalog.search');
 Route::get('/catalog/search/rawg', RawgCatalogSearchController::class)->middleware('throttle:30,1')->name('catalog.rawg-search');
+Route::get('/achievements/{user:login}', [AchievementController::class, 'show'])->name('achievements.show');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
@@ -45,6 +47,7 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
+    Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.index');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/history', HistoryController::class)->name('history.index');
     Route::get('/friends', [FriendController::class, 'index'])->name('friends.index');

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Achievement;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -26,6 +27,10 @@ class SettingsTest extends TestCase
         $user->refresh();
         Storage::disk('public')->assertMissing('avatars/old.webp');
         Storage::disk('public')->assertExists($user->avatar_path);
+        $this->assertDatabaseHas('user_achievements', [
+            'user_id' => $user->id,
+            'key' => Achievement::Avatar1->value,
+        ]);
     }
 
     public function test_user_can_change_password_with_current_password(): void

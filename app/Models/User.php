@@ -49,6 +49,11 @@ class User extends Authenticatable
         return $this->hasMany(GameReview::class);
     }
 
+    public function achievements(): HasMany
+    {
+        return $this->hasMany(UserAchievement::class);
+    }
+
     public function getAvatarUrlAttribute(): ?string
     {
         return $this->avatar_path ? Storage::disk('public')->url($this->avatar_path) : null;
