@@ -8,12 +8,16 @@ use App\Http\Controllers\CatalogBrowserController;
 use App\Http\Controllers\CatalogQuickAddController;
 use App\Http\Controllers\CatalogSearchController;
 use App\Http\Controllers\FriendController;
+use App\Http\Controllers\GameCommentController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\GameDetailController;
 use App\Http\Controllers\GameImportController;
 use App\Http\Controllers\GameLibraryController;
 use App\Http\Controllers\GameListController;
 use App\Http\Controllers\GamePageController;
+use App\Http\Controllers\GamePersonalDetailsController;
 use App\Http\Controllers\GameReviewController;
+use App\Http\Controllers\GameScreenshotController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
@@ -66,10 +70,17 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/games/{game}/edit', [GameController::class, 'edit'])->name('games.edit');
     Route::put('/games/{game}', [GameController::class, 'update'])->name('games.update');
     Route::patch('/games/{game}/status', [GameController::class, 'status'])->name('games.status');
+    Route::patch('/games/{game}/personal-details', [GamePersonalDetailsController::class, 'update'])->name('games.personal-details.update');
     Route::delete('/games/{game}', [GameController::class, 'destroy'])->name('games.destroy');
+    Route::post('/games/{game}/screenshots', [GameScreenshotController::class, 'store'])->name('games.screenshots.store');
+    Route::delete('/games/{game}/screenshots/{screenshot}', [GameScreenshotController::class, 'destroy'])->name('games.screenshots.destroy');
+    Route::post('/games/{game}/comments', [GameCommentController::class, 'store'])->name('games.comments.store');
+    Route::patch('/games/{game}/comments/{comment}/visibility', [GameCommentController::class, 'toggleVisibility'])->name('games.comments.visibility');
     Route::post('/game/review/preview', [GameReviewController::class, 'preview'])->middleware('throttle:60,1')->name('game-reviews.preview');
     Route::post('/game/{catalogGame}/add', [GameLibraryController::class, 'store'])->whereNumber('catalogGame')->name('game-library.store');
     Route::put('/game/{catalogGame}/review', [GameReviewController::class, 'update'])->whereNumber('catalogGame')->name('game-reviews.update');
+    Route::patch('/game/{catalogGame}/rating', [GameReviewController::class, 'updateRating'])->whereNumber('catalogGame')->name('game-reviews.rating.update');
+    Route::patch('/game/{catalogGame}/opinion', [GameReviewController::class, 'updateOpinion'])->whereNumber('catalogGame')->name('game-reviews.opinion.update');
     Route::delete('/game/{catalogGame}/review', [GameReviewController::class, 'destroy'])->whereNumber('catalogGame')->name('game-reviews.destroy');
 
     Route::get('/lists/{gameList}/import', [GameImportController::class, 'create'])->name('imports.create');
@@ -83,6 +94,8 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/settings/password', [SettingsController::class, 'password'])->name('settings.password');
     Route::patch('/profile/favorites', [ProfileFavoriteController::class, 'update'])->name('profile.favorites.update');
 });
+
+Route::get('/games/{game}', [GameDetailController::class, 'show'])->name('games.view');
 
 Route::get('/{login}', PublicProfileController::class)
     ->where('login', '[A-Za-z0-9_]+')

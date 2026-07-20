@@ -1,8 +1,16 @@
 @props(['user', 'size' => 'large'])
 
 @php
-    $dimensions = $size === 'small' ? 'size-16' : 'size-24 sm:size-28';
-    $iconSize = $size === 'small' ? 'text-3xl' : 'text-5xl';
+    $dimensions = match ($size) {
+        'tiny' => 'size-8',
+        'small' => 'size-16',
+        default => 'size-24 sm:size-28',
+    };
+    $iconSize = match ($size) {
+        'tiny' => 'text-base',
+        'small' => 'text-3xl',
+        default => 'text-5xl',
+    };
     $frame = $user->email
         ? 'from-amber-200 via-yellow-500 to-amber-700 shadow-amber-500/25'
         : 'from-slate-200 via-slate-400 to-slate-600 shadow-slate-400/20';

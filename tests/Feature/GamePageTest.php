@@ -60,7 +60,7 @@ class GamePageTest extends TestCase
             ->assertDontSee('Страница игры');
     }
 
-    public function test_only_catalog_games_link_to_a_page_in_every_list_mode(): void
+    public function test_user_game_entries_link_to_their_own_page_in_every_list_mode(): void
     {
         $user = User::factory()->create(['login' => 'chrono']);
         $list = $user->gameLists()->create([
@@ -91,24 +91,27 @@ class GamePageTest extends TestCase
         $this->assertSame($catalogGame->id, $linkedGame->catalog_game_id);
         $this->assertNull($manualGame->catalog_game_id);
         $this->assertDatabaseMissing('catalog_games', ['normalized_title' => 'manual game']);
-        $gameUrl = route('games.show', $catalogGame);
+        $linkedGameUrl = route('games.view', $linkedGame);
+        $manualGameUrl = route('games.view', $manualGame);
 
         foreach (['cards', 'compact', 'board'] as $mode) {
             $list->update(['display_mode' => $mode]);
             $this->actingAs($user)->get(route('lists.show', $list))
                 ->assertOk()
-                ->assertSee('href="'.$gameUrl.'"', false)
+                ->assertSee('href="'.$linkedGameUrl.'"', false)
+                ->assertSee('href="'.$manualGameUrl.'"', false)
                 ->assertSee('aria-label="Открыть страницу игры Control Ultimate Edition"', false)
                 ->assertSee('data-game-item', false)
                 ->assertSee('data-game-status-form', false)
                 ->assertSee('data-game-status-select', false)
-                ->assertDontSee('aria-label="Открыть страницу игры Manual Game"', false);
+                ->assertSee('aria-label="Открыть страницу игры Manual Game"', false);
         }
 
         $this->get(route('public.lists.show', [$user->login, $list->slug]))
             ->assertOk()
-            ->assertSee('href="'.$gameUrl.'"', false)
-            ->assertDontSee('aria-label="Открыть страницу игры Manual Game"', false);
+            ->assertSee('href="'.$linkedGameUrl.'"', false)
+            ->assertSee('href="'.$manualGameUrl.'"', false)
+            ->assertSee('aria-label="Открыть страницу игры Manual Game"', false);
     }
 
     public function test_authenticated_user_can_add_catalog_game_to_owned_list(): void

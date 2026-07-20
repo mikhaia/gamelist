@@ -103,9 +103,7 @@ class GameListController extends Controller
     public function destroy(Request $request, GameList $gameList): RedirectResponse
     {
         $this->authorizeOwner($request, $gameList);
-        $gameList->games()->whereNotNull('cover_path')->pluck('cover_path')->each(
-            fn (string $path) => Storage::disk('public')->delete($path)
-        );
+        $gameList->games()->get()->each->delete();
         if ($gameList->cover_path) {
             Storage::disk('public')->delete($gameList->cover_path);
         }

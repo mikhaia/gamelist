@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class Game extends Model
@@ -46,6 +48,18 @@ class Game extends Model
                 $game->completed_at = today();
             }
         });
+
+        static::deleting(function (Game $game): void {
+            if ($game->cover_path) {
+                Storage::disk('public')->delete($game->cover_path);
+            }
+
+            $game->screenshots()->pluck('path')->each(
+                fn (string $path) => Storage::disk('public')->delete($path),
+            );
+
+            DB::table('notifications')->where('data->game_id', $game->id)->delete();
+        });
     }
 
     public function gameList(): BelongsTo
@@ -56,6 +70,16 @@ class Game extends Model
     public function catalogGame(): BelongsTo
     {
         return $this->belongsTo(CatalogGame::class);
+    }
+
+    public function screenshots(): HasMany
+    {
+        return $this->hasMany(GameScreenshot::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(GameComment::class)->orderBy('created_at');
     }
 
     public function scopeSortedForList(Builder $query, string $sort): Builder

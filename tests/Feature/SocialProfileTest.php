@@ -191,11 +191,11 @@ class SocialProfileTest extends TestCase
         ])->assertSessionHasErrors('game_ids');
     }
 
-    public function test_catalog_favorite_links_to_game_page_while_manual_favorite_does_not(): void
+    public function test_favorites_link_to_their_owner_game_entries(): void
     {
         $user = User::factory()->create(['login' => 'favorite_player']);
         $list = $user->gameLists()->create([
-            'name' => 'Favorites', 'slug' => 'favorites', 'default_platform' => 'pc',
+            'name' => 'Favorites', 'slug' => 'favorites', 'default_platform' => 'pc', 'is_public' => true,
         ]);
         $catalogGame = CatalogGame::query()->create([
             'hltb_id' => 451,
@@ -222,10 +222,10 @@ class SocialProfileTest extends TestCase
 
         $this->get(route('profiles.show', $user->login))
             ->assertOk()
-            ->assertSee('href="'.route('games.show', $catalogGame).'"', false)
+            ->assertSee('href="'.route('games.view', $linkedGame).'"', false)
             ->assertSee('aria-label="Открыть страницу игры Catalog Favorite"', false)
-            ->assertSee('Manual Favorite')
-            ->assertDontSee('aria-label="Открыть страницу игры Manual Favorite"', false);
+            ->assertSee('href="'.route('games.view', $manualGame).'"', false)
+            ->assertSee('aria-label="Открыть страницу игры Manual Favorite"', false);
     }
 
     public function test_profile_cover_is_optimized_and_replaces_previous_image(): void

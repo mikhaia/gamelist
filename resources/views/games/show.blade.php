@@ -187,15 +187,15 @@
     @endpush
 @endif
 
-<section class="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+<section class="mt-10 grid gap-6 lg:grid-cols-2">
     <div class="panel">
         <div class="flex items-center gap-3">
             <span class="grid size-10 place-items-center rounded-xl border border-amber-300/20 bg-amber-400/10 text-amber-200">
-                <span class="material-symbols-outlined">edit</span>
+                <span class="material-symbols-outlined">trophy</span>
             </span>
             <div>
-                <h2 class="text-xl font-extrabold">Ваша оценка и мнение</h2>
-                <p class="mt-1 text-xs text-slate-500">Оценка — от 1 до 10, текст поддерживает Markdown.</p>
+                <h2 class="text-xl font-extrabold">Ваша оценка</h2>
+                <p class="mt-1 text-xs text-slate-500">От 1 до 10. Оценка не зависит от мнения.</p>
             </div>
         </div>
 
@@ -203,11 +203,11 @@
             @php
                 $currentRating = old('rating', $userReview?->rating);
             @endphp
-            <form method="POST" action="{{ route('game-reviews.update', $catalogGame) }}" class="mt-6 space-y-5">
-                @csrf @method('PUT')
+            <form method="POST" action="{{ route('game-reviews.rating.update', $catalogGame) }}" class="mt-6">
+                @csrf @method('PATCH')
                 <fieldset>
-                    <legend class="label">Оценка</legend>
-                    <div class="mt-2 flex flex-wrap gap-2">
+                    <legend class="sr-only">Оценка</legend>
+                    <div class="flex flex-wrap gap-2">
                         <label class="cursor-pointer">
                             <input type="radio" name="rating" value="" class="peer sr-only" @checked(blank($currentRating))>
                             <span class="grid min-h-10 place-items-center rounded-xl border border-white/10 px-3 text-xs font-bold text-slate-500 transition peer-checked:border-white/25 peer-checked:bg-white/10 peer-checked:text-white">Без оценки</span>
@@ -221,7 +221,30 @@
                     </div>
                     @error('rating') <p class="field-error">{{ $message }}</p> @enderror
                 </fieldset>
+                <button class="button button-primary mt-5"><span class="material-symbols-outlined">save</span> Сохранить оценку</button>
+            </form>
+        @else
+            <div class="mt-6 rounded-2xl border border-white/8 bg-white/[.025] p-5 text-center">
+                <p class="muted">Войдите, чтобы поставить оценку.</p>
+                <a href="{{ route('login') }}" class="button button-secondary button-sm mt-4"><span class="material-symbols-outlined">login</span> Войти</a>
+            </div>
+        @endauth
+    </div>
 
+    <div class="panel">
+        <div class="flex items-center gap-3">
+            <span class="grid size-10 place-items-center rounded-xl border border-violet-300/20 bg-violet-500/10 text-violet-200">
+                <span class="material-symbols-outlined">edit</span>
+            </span>
+            <div>
+                <h2 class="text-xl font-extrabold">Ваше мнение</h2>
+                <p class="mt-1 text-xs text-slate-500">Поддерживается Markdown и предпросмотр.</p>
+            </div>
+        </div>
+
+        @auth
+            <form method="POST" action="{{ route('game-reviews.opinion.update', $catalogGame) }}" class="mt-6 space-y-5">
+                @csrf @method('PATCH')
                 <div data-markdown-editor data-preview-url="{{ route('game-reviews.preview') }}">
                     <div class="flex items-center gap-1 border-b border-white/10">
                         <button type="button" class="border-b-2 border-violet-400 px-3 py-2 text-xs font-bold text-white" data-markdown-write>Написать</button>
@@ -236,35 +259,27 @@
                     </div>
                     @error('body') <p class="field-error">{{ $message }}</p> @enderror
                 </div>
-
-                <div class="flex flex-wrap gap-3">
-                    <button class="button button-primary"><span class="material-symbols-outlined">save</span> Сохранить</button>
-                </div>
+                <button class="button button-primary"><span class="material-symbols-outlined">save</span> Сохранить мнение</button>
             </form>
-
-            @if ($userReview)
-                <form method="POST" action="{{ route('game-reviews.destroy', $catalogGame) }}" class="mt-3">
-                    @csrf @method('DELETE')
-                    <button class="button button-danger button-sm" data-confirm="Удалить свою оценку и мнение?"><span class="material-symbols-outlined">delete</span> Удалить</button>
-                </form>
-            @endif
         @else
             <div class="mt-6 rounded-2xl border border-white/8 bg-white/[.025] p-5 text-center">
-                <p class="muted">Войдите, чтобы поставить оценку или написать мнение.</p>
+                <p class="muted">Войдите, чтобы оставить мнение.</p>
                 <a href="{{ route('login') }}" class="button button-secondary button-sm mt-4"><span class="material-symbols-outlined">login</span> Войти</a>
             </div>
         @endauth
     </div>
-
-    <aside class="panel h-fit">
-        <p class="text-xs font-bold uppercase tracking-[.15em] text-slate-500">Общая оценка</p>
-        <div class="mt-4 flex items-end gap-2">
-            <strong class="text-5xl font-extrabold text-amber-200">{{ $ratingAverage !== null ? number_format((float) $ratingAverage, 1, ',', ' ') : '—' }}</strong>
-            <span class="pb-1 text-sm font-bold text-slate-500">/ 10</span>
-        </div>
-        <p class="mt-3 text-xs text-slate-500">{{ $ratingCount }} {{ trans_choice('app.counts.ratings', $ratingCount) }}</p>
-    </aside>
 </section>
+
+<aside class="panel mt-6 flex items-center justify-between gap-4 sm:px-6">
+    <div>
+        <p class="text-xs font-bold uppercase tracking-[.15em] text-slate-500">Общая оценка</p>
+        <p class="mt-2 text-xs text-slate-500">{{ $ratingCount }} {{ trans_choice('app.counts.ratings', $ratingCount) }}</p>
+    </div>
+    <div class="flex items-end gap-2">
+        <strong class="text-5xl font-extrabold text-amber-200">{{ $ratingAverage !== null ? number_format((float) $ratingAverage, 1, ',', ' ') : '—' }}</strong>
+        <span class="pb-1 text-sm font-bold text-slate-500">/ 10</span>
+    </div>
+</aside>
 
 <section class="mt-10">
     <div class="mb-5">

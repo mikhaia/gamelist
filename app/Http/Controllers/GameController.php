@@ -11,7 +11,6 @@ use App\Services\GameTitleNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -100,9 +99,6 @@ class GameController extends Controller
     {
         $this->authorizeGame($request, $game);
         $list = $game->gameList;
-        if ($game->cover_path) {
-            Storage::disk('public')->delete($game->cover_path);
-        }
         $game->delete();
 
         return redirect()->route('lists.show', $list)->with('success', __('app.messages.game_deleted'));

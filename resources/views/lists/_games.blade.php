@@ -27,7 +27,7 @@
 
                     <div class="space-y-3" data-board-games>
                         @forelse ($columnGames as $game)
-                            @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
+                            @php($gamePageUrl = route('games.view', $game))
                             <article class="glass overflow-hidden rounded-2xl p-3" data-board-game data-game-item data-game-id="{{ $game->id }}" data-game-title="{{ $game->title }}" data-completed-at="{{ $game->completed_at?->format('Y-m-d') }}" data-created-at="{{ $game->created_at?->format('Y-m-d H:i:s.u') }}" data-sort-order="{{ $game->sort_order }}">
                                 <div class="flex gap-3">
                                     @if ($gamePageUrl)
@@ -90,7 +90,7 @@
 @elseif ($gameList->display_mode === 'compact')
     <div class="glass overflow-hidden rounded-3xl" data-game-list-items>
         @foreach ($gameList->games as $game)
-            @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
+            @php($gamePageUrl = route('games.view', $game))
             <article class="flex items-center gap-3 border-b border-white/7 p-3 last:border-b-0 sm:gap-4 sm:p-4" data-game-item data-game-id="{{ $game->id }}" data-game-title="{{ $game->title }}" data-completed-at="{{ $game->completed_at?->format('Y-m-d') }}" data-created-at="{{ $game->created_at?->format('Y-m-d H:i:s.u') }}" data-sort-order="{{ $game->sort_order }}">
                 @if ($gamePageUrl)
                     <a href="{{ $gamePageUrl }}" class="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-900/70 to-cyan-950/60 sm:size-16" aria-label="Открыть страницу игры {{ $game->title }}">
@@ -139,7 +139,7 @@
 @else
     <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5" data-game-list-items>
         @foreach ($gameList->games as $game)
-            @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
+            @php($gamePageUrl = route('games.view', $game))
             <article class="glass group overflow-hidden rounded-2xl transition duration-300 hover:-translate-y-1 hover:border-white/20 sm:rounded-3xl" data-game-item data-game-id="{{ $game->id }}" data-game-title="{{ $game->title }}" data-completed-at="{{ $game->completed_at?->format('Y-m-d') }}" data-created-at="{{ $game->created_at?->format('Y-m-d H:i:s.u') }}" data-sort-order="{{ $game->sort_order }}">
                 @if ($gamePageUrl)
                     <a href="{{ $gamePageUrl }}" class="relative block aspect-[3/4] overflow-hidden bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950" aria-label="Открыть страницу игры {{ $game->title }}">

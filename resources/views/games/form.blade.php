@@ -121,8 +121,9 @@
                 @endif
 
                 <div>
-                    <label class="label" for="notes">Заметки</label>
-                    <textarea class="field min-h-24" id="notes" name="notes" placeholder="Необязательно">{{ old('notes', $game->notes) }}</textarea>
+                    <label class="label" for="notes">Описание игры</label>
+                    <textarea class="field min-h-24" id="notes" name="notes" maxlength="5000" placeholder="Что стоит знать об этой записи?">{{ old('notes', $game->notes) }}</textarea>
+                    @error('notes') <p class="field-error">{{ $message }}</p> @enderror
                 </div>
 
                 <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">

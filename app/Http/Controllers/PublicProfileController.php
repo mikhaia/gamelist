@@ -19,6 +19,7 @@ class PublicProfileController extends Controller
             ->where('login', strtolower($login))
             ->with('achievements')
             ->firstOrFail();
+        $isOwner = $request->user()?->is($profile) ?? false;
         $publicLists = $profile->gameLists()
             ->where('is_public', true)
             ->withCount('games')
@@ -26,6 +27,7 @@ class PublicProfileController extends Controller
             ->get();
         $favoriteGames = $profile->favoriteGames()
             ->with('gameList')
+            ->when(! $isOwner, fn ($query) => $query->whereHas('gameList', fn ($gameLists) => $gameLists->where('is_public', true)))
             ->get();
         $publicGames = Game::query()
             ->whereHas('gameList', fn ($query) => $query
@@ -53,7 +55,6 @@ class PublicProfileController extends Controller
                 ->limit(3)
                 ->get(),
         ];
-        $isOwner = $request->user()?->is($profile) ?? false;
         $availableGames = $isOwner
             ? Game::query()
                 ->whereHas('gameList', fn ($query) => $query->where('user_id', $profile->getKey()))

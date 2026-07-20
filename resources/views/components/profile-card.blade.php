@@ -72,7 +72,7 @@
                             @endif
                             @if ($stats['public_lists'])
                                 <span class="inline-flex items-center gap-2" title="{{ trans_choice('app.counts.public_lists', $stats['public_lists']) }}" aria-label="{{ trans_choice('app.counts.public_lists', $stats['public_lists']) }}: {{ $stats['public_lists'] }}">
-                                    <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-violet-500/10 text-violet-300"><span class="material-symbols-outlined text-2xl" aria-hidden="true">public</span></span>
+                                    <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-violet-500/10 text-violet-300"><span class="material-symbols-outlined text-2xl" aria-hidden="true">view_list</span></span>
                                     <strong class="text-base font-extrabold text-white">{{ $stats['public_lists'] }}</strong>
                                 </span>
                             @endif

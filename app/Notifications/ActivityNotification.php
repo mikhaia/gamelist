@@ -14,6 +14,7 @@ class ActivityNotification extends Notification
         private readonly string $message,
         private readonly string $url,
         private readonly string $icon,
+        private readonly array $context = [],
     ) {}
 
     /** @return array<int, string> */
@@ -25,11 +26,11 @@ class ActivityNotification extends Notification
     /** @return array<string, string> */
     public function toArray(object $notifiable): array
     {
-        return [
+        return array_merge([
             'event' => $this->event,
             'message' => $this->message,
             'url' => $this->url,
             'icon' => $this->icon,
-        ];
+        ], $this->context);
     }
 }

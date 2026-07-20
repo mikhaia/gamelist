@@ -33,6 +33,7 @@ class GameObserver
                 "@{$owner->login} добавил игру «{$game->title}» в публичный список «{$game->gameList->name}».",
                 $this->publicListUrl($game),
                 'sports_esports',
+                ['game_id' => $game->id],
             );
         }
 
@@ -53,8 +54,9 @@ class GameObserver
                 $owner,
                 'good_luck',
                 "Удачи в прохождении «{$game->title}»!",
-                route('games.edit', $game, false),
+                route('games.view', $game, false),
                 'play_circle',
+                ['game_id' => $game->id],
             );
 
             if ($game->gameList->is_public) {
@@ -64,6 +66,7 @@ class GameObserver
                     "@{$owner->login} начал играть в «{$game->title}».",
                     $this->publicListUrl($game),
                     'play_circle',
+                    ['game_id' => $game->id],
                 );
             }
         }
@@ -73,8 +76,9 @@ class GameObserver
                 $owner,
                 'congratulations',
                 "Поздравляем с прохождением «{$game->title}»!",
-                route('games.edit', $game, false),
+                route('games.view', $game, false),
                 'trophy',
+                ['game_id' => $game->id],
             );
 
             if ($game->gameList->is_public) {
@@ -84,6 +88,7 @@ class GameObserver
                     "@{$owner->login} прошёл игру «{$game->title}».",
                     $this->publicListUrl($game),
                     'trophy',
+                    ['game_id' => $game->id],
                 );
             }
         }

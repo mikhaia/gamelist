@@ -17,7 +17,7 @@
         <div class="grid gap-4 sm:grid-cols-3">
             @foreach ($favoriteGames as $game)
                 @php
-                    $gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null;
+                    $gamePageUrl = route('games.view', $game);
                 @endphp
                 @if ($gamePageUrl)
                     <a href="{{ $gamePageUrl }}" class="glass group relative min-h-52 overflow-hidden rounded-3xl p-5 transition duration-300 hover:-translate-y-1 hover:border-violet-300/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400" aria-label="Открыть страницу игры {{ $game->title }}" data-favorite-game-card>
@@ -116,7 +116,7 @@
 
                 <div class="p-2">
                     @forelse ($columnGames as $game)
-                        @php($gamePageUrl = $game->catalog_game_id ? route('games.show', $game->catalog_game_id) : null)
+                        @php($gamePageUrl = route('games.view', $game))
                         @if ($gamePageUrl)
                             <a href="{{ $gamePageUrl }}" class="group flex items-center gap-3 rounded-2xl p-2.5 transition hover:bg-white/[.045] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-violet-400" aria-label="Открыть страницу игры {{ $game->title }}" data-profile-status-game>
                         @else
