@@ -140,6 +140,7 @@
                 </section>
             </div>
         @endif
+        @include('games._duplicate_dialog', ['ajax' => true])
     @endauth
 </div>
 @endsection

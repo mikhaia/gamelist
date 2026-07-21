@@ -14,11 +14,14 @@ use Throwable;
 
 class CatalogGameListAdder
 {
-    public function __construct(private readonly CoverImageService $covers) {}
+    public function __construct(
+        private readonly CoverImageService $covers,
+        private readonly GameDuplicateDetector $duplicates,
+    ) {}
 
-    public function add(GameList $gameList, CatalogGame $catalogGame, ?GameStatus $status = null): ?Game
+    public function add(GameList $gameList, CatalogGame $catalogGame, ?GameStatus $status = null, bool $allowDuplicate = false): ?Game
     {
-        if ($this->alreadyExists($gameList, $catalogGame)) {
+        if (! $allowDuplicate && $this->duplicate($gameList, $catalogGame)) {
             return null;
         }
 
@@ -46,18 +49,9 @@ class CatalogGameListAdder
         }
     }
 
-    private function alreadyExists(GameList $gameList, CatalogGame $catalogGame): bool
+    public function duplicate(GameList $gameList, CatalogGame $catalogGame): ?Game
     {
-        return $gameList->games()
-            ->where(function ($query) use ($catalogGame): void {
-                $query->where('catalog_game_id', $catalogGame->id)
-                    ->orWhere('normalized_title', $catalogGame->normalized_title);
-
-                if ($catalogGame->hltb_id !== null) {
-                    $query->orWhere('hltb_id', $catalogGame->hltb_id);
-                }
-            })
-            ->exists();
+        return $this->duplicates->find($gameList->user_id, $catalogGame->title, $catalogGame->id);
     }
 
     private function storeCover(CatalogGame $catalogGame): ?string

@@ -157,6 +157,46 @@ function closeCatalogListDialog(dialog) {
     dialog.catalogTrigger?.focus();
 }
 
+function closeGameDuplicateDialog(dialog) {
+    if (!dialog) return;
+
+    dialog.classList.add('hidden');
+    dialog.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+}
+
+function openGameDuplicateDialog(duplicate, retry) {
+    const dialog = document.querySelector('[data-game-duplicate-dialog][data-ajax]');
+    if (!dialog) return;
+
+    dialog.querySelector('[data-game-duplicate-title]').textContent = duplicate.title;
+    dialog.querySelector('[data-game-duplicate-list]').textContent = duplicate.list;
+    dialog.querySelector('[data-game-duplicate-edit]').href = duplicate.edit_url;
+    dialog.duplicateRetry = retry;
+    dialog.classList.remove('hidden');
+    dialog.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+    dialog.querySelector('[data-game-duplicate-edit]')?.focus();
+}
+
+async function requestCatalogAdd(endpoint, allowDuplicate = false) {
+    const body = new URLSearchParams();
+    if (allowDuplicate) body.set('allow_duplicate', '1');
+
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        body,
+        headers: {
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        },
+    });
+    const data = await response.json();
+
+    return { response, data };
+}
+
 function screenshotTriggers() {
     return Array.from(document.querySelectorAll('[data-screenshot-open]'));
 }
@@ -287,6 +327,29 @@ function syncCatalogBrowserFormFilters(form) {
 }
 
 document.addEventListener('click', async (event) => {
+    const duplicateAllow = event.target.closest('[data-game-duplicate-dialog][data-ajax] [data-game-duplicate-allow]');
+    if (duplicateAllow) {
+        const dialog = duplicateAllow.closest('[data-game-duplicate-dialog]');
+        duplicateAllow.disabled = true;
+
+        try {
+            await dialog.duplicateRetry?.();
+            closeGameDuplicateDialog(dialog);
+        } catch {
+            duplicateAllow.classList.add('border-red-300/40', 'text-red-200');
+            window.setTimeout(() => duplicateAllow.classList.remove('border-red-300/40', 'text-red-200'), 1800);
+        } finally {
+            duplicateAllow.disabled = false;
+        }
+        return;
+    }
+
+    const duplicateClose = event.target.closest('[data-game-duplicate-close]');
+    if (duplicateClose) {
+        closeGameDuplicateDialog(duplicateClose.closest('[data-game-duplicate-dialog]'));
+        return;
+    }
+
     const screenshotOpen = event.target.closest('[data-screenshot-open]');
     if (screenshotOpen) {
         openScreenshotModal(screenshotOpen);
@@ -351,26 +414,30 @@ document.addEventListener('click', async (event) => {
         const dialog = listOption.closest('[data-catalog-list-dialog]');
         const icon = listOption.querySelector('[data-catalog-list-option-icon]');
         const endpoint = listOption.dataset.addUrlTemplate.replace('CATALOG_GAME_ID', dialog.dataset.catalogId);
-        listOption.disabled = true;
-        icon.textContent = 'progress_activity';
-        icon.classList.add('animate-spin');
+        const add = async (allowDuplicate = false) => {
+            listOption.disabled = true;
+            icon.textContent = 'progress_activity';
+            icon.classList.add('animate-spin');
 
-        try {
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-            });
-            if (!response.ok && response.status !== 409) throw new Error('List add failed');
+            const { response, data } = await requestCatalogAdd(endpoint, allowDuplicate);
+            if (response.status === 409 && data.duplicate && !allowDuplicate) {
+                icon.classList.remove('animate-spin');
+                icon.textContent = 'add';
+                listOption.disabled = false;
+                openGameDuplicateDialog(data.duplicate, () => add(true));
+                return;
+            }
+            if (!response.ok) throw new Error('List add failed');
 
             icon.classList.remove('animate-spin');
             icon.classList.add('text-emerald-300');
             icon.textContent = 'check';
             listOption.classList.remove('border-white/8', 'bg-white/[.025]');
             listOption.classList.add('border-emerald-400/25', 'bg-emerald-950/40');
+        };
+
+        try {
+            await add();
         } catch {
             icon.classList.remove('animate-spin');
             icon.classList.add('text-red-300');
@@ -392,21 +459,29 @@ document.addEventListener('click', async (event) => {
         icon.textContent = 'progress_activity';
         icon.classList.add('animate-spin');
 
-        try {
-            const response = await fetch(quickAddButton.dataset.quickAdd, {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-            });
+        const add = async (allowDuplicate = false) => {
+            quickAddButton.disabled = true;
+            icon.textContent = 'progress_activity';
+            icon.classList.add('animate-spin');
+            const { response, data } = await requestCatalogAdd(quickAddButton.dataset.quickAdd, allowDuplicate);
+            if (response.status === 409 && data.duplicate && !allowDuplicate) {
+                icon.classList.remove('animate-spin');
+                icon.textContent = 'add';
+                quickAddButton.disabled = false;
+                openGameDuplicateDialog(data.duplicate, () => add(true));
+                return;
+            }
+            if (!response.ok) throw new Error('Quick add failed');
 
-            if (!response.ok && response.status !== 409) throw new Error('Quick add failed');
             icon.classList.remove('animate-spin');
             icon.textContent = 'check';
-            quickAddButton.title = response.status === 409 ? 'Уже в списке' : 'Добавлено в список';
+            quickAddButton.title = 'Добавлено в список';
+            quickAddButton.classList.remove('border-amber-400/25', 'bg-amber-950/80', 'text-amber-300');
             quickAddButton.classList.add('border-emerald-400/25', 'bg-emerald-950/80', 'text-emerald-300');
+        };
+
+        try {
+            await add();
         } catch {
             icon.classList.remove('animate-spin');
             icon.textContent = 'error';
@@ -695,6 +770,8 @@ document.addEventListener('keydown', (event) => {
     closeScreenshotModal(screenshotModal);
 
     closeCatalogListDialog(document.querySelector('[data-catalog-list-dialog]:not(.hidden)'));
+
+    closeGameDuplicateDialog(document.querySelector('[data-game-duplicate-dialog]:not(.hidden)'));
 
     document.querySelectorAll('[data-notification-panel]:not(.hidden)').forEach((panel) => {
         panel.classList.add('hidden');

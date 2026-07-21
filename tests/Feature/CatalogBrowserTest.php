@@ -176,7 +176,15 @@ class CatalogBrowserTest extends TestCase
         ]);
 
         $this->actingAs($user)->postJson(route('catalog.add', [$list, $catalogGame]))
-            ->assertConflict();
+            ->assertConflict()
+            ->assertJsonPath('message', 'Такая игра уже добавлена.')
+            ->assertJsonPath('duplicate.title', 'Hades II')
+            ->assertJsonPath('duplicate.edit_url', route('games.edit', $list->games()->first()));
+
+        $this->actingAs($user)->postJson(route('catalog.add', [$list, $catalogGame]), [
+            'allow_duplicate' => true,
+        ])->assertCreated();
+        $this->assertSame(2, $list->games()->where('catalog_game_id', $catalogGame->id)->count());
     }
 
     public function test_another_user_cannot_open_or_add_to_catalog(): void

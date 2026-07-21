@@ -159,7 +159,17 @@ class GamePageTest extends TestCase
         $this->actingAs($user)->post(route('game-library.store', $catalogGame), [
             'game_list_id' => $list->id,
             'status' => 'playing',
-        ])->assertSessionHasErrors('game_list_id');
+        ])->assertSessionHas('duplicateGame');
+        $this->actingAs($user)->get(route('games.show', $catalogGame))
+            ->assertOk()
+            ->assertSee('Такая игра уже добавлена')
+            ->assertSee('form="game-library-add-form" name="allow_duplicate" value="1"', false);
+        $this->actingAs($user)->post(route('game-library.store', $catalogGame), [
+            'game_list_id' => $list->id,
+            'status' => 'playing',
+            'allow_duplicate' => '1',
+        ])->assertRedirect(route('games.show', $catalogGame));
+        $this->assertSame(2, $list->games()->where('catalog_game_id', $catalogGame->id)->count());
         $this->actingAs($user)->post(route('game-library.store', $catalogGame), [
             'game_list_id' => $otherList->id,
             'status' => 'want_to_play',

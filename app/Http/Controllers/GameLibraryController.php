@@ -6,6 +6,7 @@ use App\Enums\GameStatus;
 use App\Models\CatalogGame;
 use App\Models\GameList;
 use App\Services\CatalogGameListAdder;
+use App\Services\GameDuplicateDetector;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,7 +14,10 @@ use Illuminate\Validation\ValidationException;
 
 class GameLibraryController extends Controller
 {
-    public function __construct(private readonly CatalogGameListAdder $games) {}
+    public function __construct(
+        private readonly CatalogGameListAdder $games,
+        private readonly GameDuplicateDetector $duplicates,
+    ) {}
 
     public function store(Request $request, CatalogGame $catalogGame): RedirectResponse
     {
@@ -34,7 +38,14 @@ class GameLibraryController extends Controller
             ]);
         }
 
-        if (! $this->games->add($gameList, $catalogGame, $status)) {
+        $duplicate = $this->games->duplicate($gameList, $catalogGame);
+        if ($duplicate && ! $request->boolean('allow_duplicate')) {
+            return back()
+                ->withInput()
+                ->with('duplicateGame', $this->duplicates->details($duplicate));
+        }
+
+        if (! $this->games->add($gameList, $catalogGame, $status, true)) {
             throw ValidationException::withMessages([
                 'game_list_id' => __('app.errors.game_duplicate'),
             ]);

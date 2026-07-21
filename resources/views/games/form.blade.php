@@ -37,11 +37,11 @@
         </section>
 
         <section class="panel">
-            <form method="POST" enctype="multipart/form-data" action="{{ $editing ? route('games.update', $game) : route('games.store', $gameList) }}" class="space-y-5" data-game-form>
+            <form id="game-form" method="POST" enctype="multipart/form-data" action="{{ $editing ? route('games.update', $game) : route('games.store', $gameList) }}" class="space-y-5" data-game-form>
                 @csrf
                 @if ($editing) @method('PUT') @endif
                 <input type="hidden" name="hltb_id" value="{{ old('hltb_id', $game->hltb_id) }}">
-                <input type="hidden" name="catalog_cover_url" value="">
+                <input type="hidden" name="catalog_cover_url" value="{{ old('catalog_cover_url') }}">
                 <input type="hidden" name="source_cover_url" value="{{ old('source_cover_url', $game->source_cover_url) }}">
                 <input type="hidden" name="main_story_minutes" value="{{ old('main_story_minutes', $game->main_story_minutes) }}">
                 <input type="hidden" name="main_extra_minutes" value="{{ old('main_extra_minutes', $game->main_extra_minutes) }}">
@@ -142,4 +142,10 @@
         </section>
     </div>
 </div>
+
+@if (! $editing && session('duplicateGame'))
+    @push('modals')
+        @include('games._duplicate_dialog', ['duplicateGame' => session('duplicateGame'), 'formId' => 'game-form'])
+    @endpush
+@endif
 @endsection

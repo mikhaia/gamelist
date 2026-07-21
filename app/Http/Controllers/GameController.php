@@ -6,7 +6,9 @@ use App\Enums\Platform;
 use App\Models\Game;
 use App\Models\GameList;
 use App\Services\CatalogGameCache;
+use App\Services\CatalogGameResolver;
 use App\Services\CoverImageService;
+use App\Services\GameDuplicateDetector;
 use App\Services\GameTitleNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +21,9 @@ class GameController extends Controller
 {
     public function __construct(
         private readonly CatalogGameCache $catalogCache,
+        private readonly CatalogGameResolver $catalogGames,
         private readonly CoverImageService $covers,
+        private readonly GameDuplicateDetector $duplicates,
         private readonly GameTitleNormalizer $normalizer,
     ) {}
 
@@ -38,6 +42,23 @@ class GameController extends Controller
         $this->authorizeList($request, $gameList);
         $validated = $this->validated($request, $gameList);
         $validated['normalized_title'] = $this->normalizer->normalize($validated['title']);
+        $catalogGame = $this->catalogGames->resolve(new Game($validated));
+
+        if (! $request->boolean('allow_duplicate')) {
+            $duplicate = $this->duplicates->find(
+                $request->user()->id,
+                $validated['title'],
+                $catalogGame?->id,
+            );
+
+            if ($duplicate) {
+                return back()
+                    ->withInput()
+                    ->with('duplicateGame', $this->duplicates->details($duplicate));
+            }
+        }
+
+        $validated['catalog_game_id'] = $catalogGame?->id;
         $validated['cover_path'] = $this->storeCover($request);
         $validated['source_cover_url'] = $request->input('cover_url') ?: $request->input('catalog_cover_url');
         $gameList->games()->create($validated);
@@ -149,13 +170,15 @@ class GameController extends Controller
             'title.unique' => __('app.errors.game_duplicate'),
         ]);
 
-        $duplicate = $gameList->games()
-            ->where('normalized_title', $this->normalizer->normalize($validated['title']))
-            ->when($game, fn ($query) => $query->whereKeyNot($game->id))
-            ->exists();
+        if ($game) {
+            $duplicate = $gameList->games()
+                ->where('normalized_title', $this->normalizer->normalize($validated['title']))
+                ->whereKeyNot($game->id)
+                ->exists();
 
-        if ($duplicate) {
-            throw ValidationException::withMessages(['title' => __('app.errors.game_duplicate')]);
+            if ($duplicate) {
+                throw ValidationException::withMessages(['title' => __('app.errors.game_duplicate')]);
+            }
         }
 
         return $validated;

@@ -50,6 +50,8 @@ class GamePageController extends Controller
                 ->where('catalog_game_id', $catalogGame->id)
                 ->whereHas('gameList', fn ($query) => $query->where('user_id', $user->id))
                 ->pluck('game_list_id')
+                ->unique()
+                ->values()
             : collect();
         $userScreenshots = GameScreenshot::query()
             ->whereHas('game', function ($query) use ($catalogGame, $user): void {
@@ -65,7 +67,7 @@ class GamePageController extends Controller
         $screenshots = collect($catalogGame->screenshots ?? [])
             ->map(fn (string $url, int $index): array => [
                 'url' => $url,
-                'caption' => "Скриншот ".($index + 1)." из игры {$catalogGame->title}",
+                'caption' => 'Скриншот '.($index + 1)." из игры {$catalogGame->title}",
                 'user' => null,
             ])
             ->concat($userScreenshots->map(fn (GameScreenshot $screenshot): array => [
@@ -85,7 +87,7 @@ class GamePageController extends Controller
             'reviews' => $reviews,
             'userReview' => $userReview,
             'userLists' => $userLists,
-            'availableLists' => $userLists->whereNotIn('id', $addedListIds),
+            'availableLists' => $userLists,
             'addedListsCount' => $addedListIds->count(),
             'screenshots' => $screenshots,
         ]);

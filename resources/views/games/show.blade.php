@@ -112,7 +112,7 @@
                                 $selectedStatus = old('status', $selectedList->defaultStatus()->value);
                                 $statusLabels = collect(\App\Enums\GameStatus::cases())->mapWithKeys(fn ($status) => [$status->value => $status->label()]);
                             @endphp
-                            <form method="POST" action="{{ route('game-library.store', $catalogGame) }}" class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:items-end" data-game-library-add data-status-labels='@json($statusLabels)'>
+                            <form id="game-library-add-form" method="POST" action="{{ route('game-library.store', $catalogGame) }}" class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:items-end" data-game-library-add data-status-labels='@json($statusLabels)'>
                                 @csrf
                                 <div class="min-w-0">
                                     <label class="label" for="game_list_id">Список</label>
@@ -316,4 +316,10 @@
         <div class="mt-6">{{ $reviews->links() }}</div>
     @endif
 </section>
+
+@if (session('duplicateGame'))
+    @push('modals')
+        @include('games._duplicate_dialog', ['duplicateGame' => session('duplicateGame'), 'formId' => 'game-library-add-form'])
+    @endpush
+@endif
 @endsection

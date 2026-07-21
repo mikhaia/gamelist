@@ -16,13 +16,12 @@
             @if ($gameList)
                 <button
                     type="button"
-                    class="absolute right-3 top-3 z-10 grid size-11 cursor-pointer place-items-center rounded-2xl border backdrop-blur-xl transition {{ $alreadyAdded ? 'border-emerald-400/25 bg-emerald-950/80 text-emerald-300' : 'border-white/15 bg-black/70 text-white hover:scale-105 hover:border-violet-400/60 hover:bg-violet-500' }}"
-                    title="{{ $alreadyAdded ? 'Уже в списке' : 'Добавить в '.$gameList->name }}"
-                    aria-label="{{ $alreadyAdded ? 'Уже в списке' : 'Добавить '.$catalogGame->title }}"
+                    class="absolute right-3 top-3 z-10 grid size-11 cursor-pointer place-items-center rounded-2xl border backdrop-blur-xl transition {{ $alreadyAdded ? 'border-amber-400/25 bg-amber-950/80 text-amber-300 hover:scale-105 hover:bg-amber-900/80' : 'border-white/15 bg-black/70 text-white hover:scale-105 hover:border-violet-400/60 hover:bg-violet-500' }}"
+                    title="{{ $alreadyAdded ? 'Добавить ещё раз в '.$gameList->name : 'Добавить в '.$gameList->name }}"
+                    aria-label="{{ $alreadyAdded ? 'Добавить '.$catalogGame->title.' ещё раз' : 'Добавить '.$catalogGame->title }}"
                     data-quick-add="{{ route('catalog.add', [$gameList, $catalogGame]) }}"
-                    @disabled($alreadyAdded)
                 >
-                    <span class="material-symbols-outlined" data-quick-add-icon>{{ $alreadyAdded ? 'check' : 'add' }}</span>
+                    <span class="material-symbols-outlined" data-quick-add-icon>add</span>
                 </button>
             @else
                 <button
