@@ -202,6 +202,43 @@
             </div>
 
             <aside class="space-y-6">
+                @if ($statusTimeline->isNotEmpty())
+                    @php($statusTimelineClasses = [
+                        'want_to_play' => ['dot' => 'bg-violet-400', 'icon' => 'bg-violet-500/10 text-violet-300'],
+                        'installed' => ['dot' => 'bg-sky-400', 'icon' => 'bg-sky-500/10 text-sky-300'],
+                        'playing' => ['dot' => 'bg-cyan-400', 'icon' => 'bg-cyan-500/10 text-cyan-300'],
+                        'completed' => ['dot' => 'bg-emerald-400', 'icon' => 'bg-emerald-500/10 text-emerald-300'],
+                        'dropped' => ['dot' => 'bg-rose-400', 'icon' => 'bg-rose-500/10 text-rose-300'],
+                    ])
+                    <section aria-labelledby="game-status-history-title" data-game-status-history>
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <h2 id="game-status-history-title" class="text-lg font-extrabold">История {{ '@'.$owner->login }}</h2>
+                                <p class="mt-1 text-xs text-slate-500">Как менялся статус игры</p>
+                            </div>
+                            <a href="{{ route('history.show', $owner->login) }}" class="grid size-10 shrink-0 place-items-center rounded-xl bg-cyan-500/10 text-cyan-300 transition hover:bg-cyan-500/20 hover:text-cyan-200" title="Открыть историю {{ '@'.$owner->login }}" aria-label="Открыть историю {{ '@'.$owner->login }}" data-game-owner-history><span class="material-symbols-outlined">history</span></a>
+                        </div>
+
+                        <div class="relative mt-5">
+                            <div class="absolute top-2 bottom-2 left-[.4375rem] w-px bg-gradient-to-b from-violet-400/60 via-white/10 to-transparent"></div>
+                            @foreach ($statusTimeline as $item)
+                                @php($event = $item['event'])
+                                @php($classes = $statusTimelineClasses[$event->status->value])
+                                <div class="relative pb-5 pl-7 last:pb-0" data-game-status-event="{{ $event->status->value }}" data-repeated="{{ $item['repeated'] ? 'true' : 'false' }}">
+                                    <span class="absolute top-1.5 left-0 size-3.5 rounded-full border-[3px] border-[#090b16] {{ $classes['dot'] }}"></span>
+                                    <time datetime="{{ $event->changed_at->toIso8601String() }}" class="block text-[10px] font-extrabold uppercase tracking-[.1em] text-slate-500">
+                                        {{ $event->changed_at->translatedFormat('j F Y, H:i') }}
+                                    </time>
+                                    <div class="mt-1.5 flex items-center gap-2">
+                                        <span class="grid size-8 shrink-0 place-items-center rounded-lg {{ $classes['icon'] }}"><span class="material-symbols-outlined text-base">{{ $event->status->icon() }}</span></span>
+                                        <span class="text-sm font-extrabold text-slate-200">{{ $event->status->historyLabel($item['repeated']) }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
                 <section class="panel">
                     <div class="flex items-center justify-between gap-3">
                         <div>

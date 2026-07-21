@@ -102,7 +102,8 @@ class HistoryTest extends TestCase
             ->assertOk()
             ->assertSee('Public Completion')
             ->assertSee('Private Completion')
-            ->assertSee('href="'.route('games.edit', $privateGame).'"', false);
+            ->assertSee('href="'.route('games.view', $privateGame).'"', false)
+            ->assertDontSee('href="'.route('games.edit', $privateGame).'"', false);
     }
 
     public function test_empty_history_has_helpful_state(): void

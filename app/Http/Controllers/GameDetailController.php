@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Game;
 use App\Models\GameComment;
+use App\Models\GameStatusEvent;
 use App\Services\GameAccess;
 use App\Services\ReviewMarkdown;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class GameDetailController extends Controller
     public function show(Request $request, Game $game): View
     {
         $this->access->authorizeView($request->user(), $game);
-        $game->load(['catalogGame', 'gameList.user', 'screenshots']);
+        $game->load(['catalogGame', 'gameList.user', 'screenshots', 'statusEvents']);
 
         $viewer = $request->user();
         $isOwner = $this->access->isOwner($viewer, $game);
@@ -30,12 +31,24 @@ class GameDetailController extends Controller
                 || $isOwner
                 || $comment->user_id === $viewer?->id,
         );
+        $seenStatuses = [];
+        $statusTimeline = $game->statusEvents
+            ->map(function (GameStatusEvent $event) use (&$seenStatuses): array {
+                $status = $event->status->value;
+                $repeated = isset($seenStatuses[$status]);
+                $seenStatuses[$status] = true;
+
+                return ['event' => $event, 'repeated' => $repeated];
+            })
+            ->reverse()
+            ->values();
 
         return view('games.entry', [
             'game' => $game,
             'owner' => $game->gameList->user,
             'isOwner' => $isOwner,
             'ownerReview' => $ownerReview,
+            'statusTimeline' => $statusTimeline,
             'commentTree' => $this->commentTree($comments),
             'renderedNotes' => $this->markdown->render($game->notes),
             'renderedOpinion' => $this->markdown->render($ownerReview?->body),

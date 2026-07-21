@@ -23,6 +23,7 @@ class GameObserver
 
     public function created(Game $game): void
     {
+        $this->recordStatus($game);
         $game->loadMissing('gameList.user');
         $owner = $game->gameList->user;
 
@@ -46,6 +47,7 @@ class GameObserver
             return;
         }
 
+        $this->recordStatus($game);
         $game->loadMissing('gameList.user');
         $owner = $game->gameList->user;
 
@@ -99,5 +101,13 @@ class GameObserver
     private function publicListUrl(Game $game): string
     {
         return route('public.lists.show', [$game->gameList->user->login, $game->gameList->slug], false);
+    }
+
+    private function recordStatus(Game $game): void
+    {
+        $game->statusEvents()->create([
+            'status' => $game->status,
+            'changed_at' => $game->updated_at ?? now(),
+        ]);
     }
 }

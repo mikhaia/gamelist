@@ -25,4 +25,17 @@ enum GameStatus: string
             self::Dropped => 'block',
         };
     }
+
+    public function historyLabel(bool $repeated = false): string
+    {
+        $label = match ($this) {
+            self::WantToPlay => 'Хочет сыграть',
+            self::Installed => 'Установлена',
+            self::Playing => 'Начал играть',
+            self::Completed => 'Пройдена',
+            self::Dropped => 'Брошена',
+        };
+
+        return $repeated ? 'Снова '.mb_strtolower($label) : $label;
+    }
 }

@@ -9,6 +9,7 @@ use App\Models\GameScreenshot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -129,6 +130,54 @@ class GameDetailTest extends TestCase
         $this->actingAs($owner)->get(route('games.view', $game))->assertOk();
     }
 
+    public function test_game_status_timeline_records_changes_and_marks_repeated_statuses(): void
+    {
+        $owner = User::factory()->create();
+        $this->travelTo(Carbon::parse('2026-07-01 09:00:00'));
+        $game = $this->gameFor($owner, true, ['status' => 'want_to_play']);
+        $this->actingAs($owner);
+
+        foreach ([
+            ['2026-07-02 10:00:00', 'playing'],
+            ['2026-07-03 11:00:00', 'completed'],
+            ['2026-07-04 12:00:00', 'playing'],
+            ['2026-07-05 13:00:00', 'dropped'],
+            ['2026-07-06 14:00:00', 'playing'],
+            ['2026-07-07 15:00:00', 'completed'],
+            ['2026-07-08 16:00:00', 'dropped'],
+        ] as [$changedAt, $status]) {
+            $this->travelTo(Carbon::parse($changedAt));
+            $this->patch(route('games.status', $game), ['status' => $status])->assertRedirect();
+        }
+
+        $this->travelTo(Carbon::parse('2026-07-09 17:00:00'));
+        $this->patch(route('games.status', $game), ['status' => 'dropped'])->assertRedirect();
+
+        $events = $game->statusEvents()->get();
+        $this->assertSame(
+            ['want_to_play', 'playing', 'completed', 'playing', 'dropped', 'playing', 'completed', 'dropped'],
+            $events->pluck('status')->map->value->all(),
+        );
+        $this->assertSame('2026-07-01 09:00:00', $events->first()->changed_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-07-08 16:00:00', $events->last()->changed_at->format('Y-m-d H:i:s'));
+        $this->assertDatabaseCount('game_status_events', 8);
+
+        $page = $this->get(route('games.view', $game));
+        $page->assertOk()
+            ->assertSee('<section aria-labelledby="game-status-history-title" data-game-status-history>', false)
+            ->assertSee('История @'.$owner->login)
+            ->assertSee('href="'.route('history.show', $owner->login).'"', false)
+            ->assertSee('data-game-owner-history', false)
+            ->assertSee('<span class="material-symbols-outlined">history</span>', false)
+            ->assertSee('Снова брошена')
+            ->assertSee('Снова пройдена')
+            ->assertSeeInOrder([
+                'data-game-status-event="dropped" data-repeated="true"',
+                'data-game-status-event="completed" data-repeated="true"',
+            ], false);
+        $this->assertSame(8, substr_count($page->getContent(), 'data-game-status-event='));
+    }
+
     public function test_owner_can_upload_screenshots_and_game_deletion_removes_them(): void
     {
         Storage::fake('public');
@@ -159,6 +208,7 @@ class GameDetailTest extends TestCase
         $this->actingAs($owner)->delete(route('games.destroy', $game))->assertRedirect();
 
         $this->assertDatabaseMissing('games', ['id' => $game->id]);
+        $this->assertDatabaseCount('game_status_events', 0);
         $this->assertDatabaseCount('game_screenshots', 0);
         $screenshots->each(fn (GameScreenshot $screenshot) => Storage::disk('public')->assertMissing($screenshot->path));
     }

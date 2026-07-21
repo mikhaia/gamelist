@@ -39,7 +39,7 @@
                     <div class="mt-3 space-y-3">
                         @foreach ($games as $game)
                             @php($duration = $game->completionDuration())
-                            <a href="{{ $isOwner ? route('games.edit', $game) : route('games.view', $game) }}" class="glass group flex gap-3 overflow-hidden rounded-2xl p-3 transition hover:-translate-y-0.5 hover:border-white/20 sm:gap-4 sm:p-4" data-history-event>
+                            <a href="{{ route('games.view', $game) }}" class="glass group flex gap-3 overflow-hidden rounded-2xl p-3 transition hover:-translate-y-0.5 hover:border-white/20 sm:gap-4 sm:p-4" data-history-event>
                                 <div class="grid h-24 w-18 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-violet-950 via-slate-900 to-cyan-950 sm:h-28 sm:w-21">
                                     @if ($game->cover_url)
                                         <img src="{{ $game->cover_url }}" alt="Обложка {{ $game->title }}" class="h-full w-full object-cover" loading="lazy">

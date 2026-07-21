@@ -77,6 +77,11 @@ class Game extends Model
         return $this->hasMany(GameScreenshot::class)->orderBy('sort_order')->orderBy('id');
     }
 
+    public function statusEvents(): HasMany
+    {
+        return $this->hasMany(GameStatusEvent::class)->orderBy('changed_at')->orderBy('id');
+    }
+
     public function comments(): HasMany
     {
         return $this->hasMany(GameComment::class)->orderBy('created_at');
