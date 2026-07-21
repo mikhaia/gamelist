@@ -191,6 +191,21 @@ class SocialProfileTest extends TestCase
         ])->assertSessionHasErrors('game_ids');
     }
 
+    public function test_profile_hides_favorite_games_when_user_has_not_added_any_games(): void
+    {
+        $user = User::factory()->create(['login' => 'empty_player']);
+
+        $this->get(route('profiles.show', $user->login))
+            ->assertOk()
+            ->assertDontSeeText('Любимые игры')
+            ->assertDontSee('data-favorite-picker', false);
+
+        $this->actingAs($user)->get(route('profiles.show', $user->login))
+            ->assertOk()
+            ->assertDontSeeText('Любимые игры')
+            ->assertDontSee('data-favorite-picker', false);
+    }
+
     public function test_favorites_link_to_their_owner_game_entries(): void
     {
         $user = User::factory()->create(['login' => 'favorite_player']);

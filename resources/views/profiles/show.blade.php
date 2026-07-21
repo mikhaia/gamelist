@@ -5,6 +5,7 @@
 @section('content')
 <x-profile-card :user="$profile" :stats="$stats" :is-friend="$isFriend" />
 
+@if ($favoriteGames->isNotEmpty() || ($isOwner && $availableGames->isNotEmpty()))
 <section class="mt-8">
     <div class="mb-4 flex items-end justify-between gap-4">
         <div>
@@ -93,6 +94,7 @@
         </form>
     @endif
 </section>
+@endif
 
 <section class="mt-10" aria-label="Игры пользователя по статусам">
     @php
@@ -154,7 +156,7 @@
 <section class="mt-10">
     <div class="mb-5">
         <span class="eyebrow"><span class="material-symbols-outlined">view_list</span> Коллекции</span>
-        <h2 class="text-2xl font-extrabold">Публичные списки</h2>
+        <h2 class="text-2xl font-extrabold">Списки {{ $profile->login }}</h2>
     </div>
 
     @if ($publicLists->isEmpty())

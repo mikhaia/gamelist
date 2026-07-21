@@ -23,7 +23,7 @@ class PublicProfileController extends Controller
         $publicLists = $profile->gameLists()
             ->where('is_public', true)
             ->withCount('games')
-            ->latest()
+            ->orderByLatestGameUpdate()
             ->get();
         $favoriteGames = $profile->favoriteGames()
             ->with('gameList')

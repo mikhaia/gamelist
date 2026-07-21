@@ -43,6 +43,44 @@ class GameListTest extends TestCase
         $this->get('/chrono/secret')->assertNotFound();
     }
 
+    public function test_list_indexes_are_sorted_by_latest_game_update(): void
+    {
+        $user = User::factory()->create(['login' => 'sorter']);
+        $mostRecentlyChanged = $user->gameLists()->create([
+            'name' => 'Most Recently Changed', 'slug' => 'most-recently-changed', 'default_platform' => 'pc', 'is_public' => true,
+        ]);
+        $changedEarlier = $user->gameLists()->create([
+            'name' => 'Changed Earlier', 'slug' => 'changed-earlier', 'default_platform' => 'pc', 'is_public' => true,
+        ]);
+        $emptyList = $user->gameLists()->create([
+            'name' => 'Empty List', 'slug' => 'empty-list', 'default_platform' => 'pc', 'is_public' => true,
+        ]);
+
+        $latestGame = $mostRecentlyChanged->games()->create([
+            'title' => 'Latest Game', 'normalized_title' => 'latest game', 'status' => 'playing', 'platform' => 'pc',
+        ]);
+        $earlierGame = $changedEarlier->games()->create([
+            'title' => 'Earlier Game', 'normalized_title' => 'earlier game', 'status' => 'playing', 'platform' => 'pc',
+        ]);
+
+        $latestGame->forceFill(['updated_at' => Carbon::parse('2026-03-01')])->saveQuietly();
+        $earlierGame->forceFill(['updated_at' => Carbon::parse('2026-02-01')])->saveQuietly();
+        $mostRecentlyChanged->forceFill(['updated_at' => Carbon::parse('2026-01-01')])->saveQuietly();
+        $changedEarlier->forceFill(['updated_at' => Carbon::parse('2026-04-01')])->saveQuietly();
+        $emptyList->forceFill(['updated_at' => Carbon::parse('2026-05-01')])->saveQuietly();
+
+        $expectedOrder = ['Most Recently Changed', 'Changed Earlier', 'Empty List'];
+
+        $this->actingAs($user)->get(route('lists.index'))
+            ->assertOk()
+            ->assertSeeInOrder($expectedOrder);
+
+        $this->get(route('profiles.show', $user->login))
+            ->assertOk()
+            ->assertSeeText('Списки sorter')
+            ->assertSeeInOrder($expectedOrder);
+    }
+
     public function test_another_user_cannot_edit_list(): void
     {
         $owner = User::factory()->create();

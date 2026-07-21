@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\GameStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +34,15 @@ class GameList extends Model
     public function games(): HasMany
     {
         return $this->hasMany(Game::class)->orderBy('sort_order')->orderByDesc('created_at');
+    }
+
+    public function scopeOrderByLatestGameUpdate(Builder $query): Builder
+    {
+        return $query
+            ->withMax('games', 'updated_at')
+            ->orderByDesc('games_max_updated_at')
+            ->orderByDesc('game_lists.updated_at')
+            ->orderByDesc('game_lists.id');
     }
 
     public function getPublicPathAttribute(): string

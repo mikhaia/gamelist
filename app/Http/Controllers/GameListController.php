@@ -20,7 +20,10 @@ class GameListController extends Controller
 
     public function index(Request $request): View
     {
-        $lists = $request->user()->gameLists()->withCount('games')->latest()->get();
+        $lists = $request->user()->gameLists()
+            ->withCount('games')
+            ->orderByLatestGameUpdate()
+            ->get();
 
         return view('lists.index', compact('lists'));
     }
