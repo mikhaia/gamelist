@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\GameStatus;
+use App\Enums\Platform;
 use App\Models\CatalogGame;
 use App\Models\Game;
 use App\Models\GameList;
@@ -19,8 +20,13 @@ class CatalogGameListAdder
         private readonly GameDuplicateDetector $duplicates,
     ) {}
 
-    public function add(GameList $gameList, CatalogGame $catalogGame, ?GameStatus $status = null, bool $allowDuplicate = false): ?Game
-    {
+    public function add(
+        GameList $gameList,
+        CatalogGame $catalogGame,
+        ?GameStatus $status = null,
+        bool $allowDuplicate = false,
+        ?Platform $platform = null,
+    ): ?Game {
         if (! $allowDuplicate && $this->duplicate($gameList, $catalogGame)) {
             return null;
         }
@@ -33,7 +39,7 @@ class CatalogGameListAdder
                 'title' => $catalogGame->title,
                 'normalized_title' => $catalogGame->normalized_title,
                 'status' => $status ?? $gameList->defaultStatus(),
-                'platform' => $gameList->default_platform,
+                'platform' => $platform?->value ?? $gameList->default_platform,
                 'hltb_id' => $catalogGame->hltb_id,
                 'cover_path' => $coverPath,
                 'source_cover_url' => $catalogGame->cover_url,

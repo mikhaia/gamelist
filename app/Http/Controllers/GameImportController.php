@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\GameStatus;
 use App\Enums\Platform;
+use App\Models\CatalogGame;
 use App\Models\GameList;
+use App\Services\CatalogGameListAdder;
 use App\Services\GameImportParser;
 use App\Services\GameTitleNormalizer;
+use App\Services\ImportCatalogMatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +20,8 @@ use Illuminate\View\View;
 class GameImportController extends Controller
 {
     public function __construct(
+        private readonly CatalogGameListAdder $catalogGames,
+        private readonly ImportCatalogMatcher $catalogMatcher,
         private readonly GameImportParser $parser,
         private readonly GameTitleNormalizer $normalizer,
     ) {}
@@ -42,6 +48,9 @@ class GameImportController extends Controller
 
         $items = array_map(function (array $item) use ($existing): array {
             $item['duplicate_existing'] = $existing->has($item['normalized_title']);
+            $item['catalog_suggestions'] = $item['duplicate_in_input'] || $item['duplicate_existing']
+                ? []
+                : $this->catalogMatcher->forTitle($item['title']);
 
             return $item;
         }, $items);
@@ -56,30 +65,58 @@ class GameImportController extends Controller
     {
         $this->authorizeOwner($request, $gameList);
         $validated = $request->validate([
-            'titles' => ['required', 'array', 'max:100'],
-            'titles.*' => ['required', 'string', 'max:255'],
+            'items' => ['required', 'array', 'max:100'],
+            'items.*.selected' => ['nullable', 'boolean'],
+            'items.*.title' => ['required', 'string', 'max:255'],
+            'items.*.catalog_game_id' => ['nullable', 'integer', Rule::exists('catalog_games', 'id')],
             'status' => ['required', Rule::in($gameList->availableStatusValues())],
             'platform' => ['required', Rule::enum(Platform::class)],
         ]);
 
-        $existing = $gameList->games()->pluck('normalized_title')->flip();
+        $items = collect($validated['items'])->filter(fn (array $item): bool => (bool) ($item['selected'] ?? false));
+        if ($items->isEmpty()) {
+            throw ValidationException::withMessages(['items' => 'Выберите хотя бы одну новую игру.']);
+        }
+
+        $existingGames = $gameList->games()->get(['normalized_title', 'catalog_game_id']);
+        $existing = $existingGames->pluck('normalized_title')->flip();
+        $existingCatalogIds = $existingGames->pluck('catalog_game_id')->filter()->flip();
+        $catalogGameIds = $items->pluck('catalog_game_id')->filter()->unique()->values()->all();
+        $catalogGames = CatalogGame::query()
+            ->whereKey($catalogGameIds)
+            ->get()
+            ->keyBy('id');
+        $status = GameStatus::from($validated['status']);
+        $platform = Platform::from($validated['platform']);
         $created = 0;
 
-        DB::transaction(function () use ($validated, $gameList, $existing, &$created): void {
-            foreach ($validated['titles'] as $title) {
-                $title = trim($title);
+        DB::transaction(function () use ($items, $gameList, $existing, $existingCatalogIds, $catalogGames, $status, $platform, &$created): void {
+            foreach ($items as $item) {
+                $catalogGame = isset($item['catalog_game_id'])
+                    ? $catalogGames->get((int) $item['catalog_game_id'])
+                    : null;
+                $title = $catalogGame?->title ?? trim($item['title']);
                 $normalized = $this->normalizer->normalize($title);
-                if ($title === '' || $existing->has($normalized)) {
+                if ($title === '' || $existing->has($normalized) || ($catalogGame && $existingCatalogIds->has($catalogGame->id))) {
                     continue;
                 }
 
-                $gameList->games()->create([
-                    'title' => $title,
-                    'normalized_title' => $normalized,
-                    'status' => $validated['status'],
-                    'platform' => $validated['platform'],
-                ]);
+                $game = $catalogGame
+                    ? $this->catalogGames->add($gameList, $catalogGame, $status, allowDuplicate: true, platform: $platform)
+                    : $gameList->games()->create([
+                        'title' => $title,
+                        'normalized_title' => $normalized,
+                        'status' => $status,
+                        'platform' => $platform,
+                    ]);
+                if (! $game) {
+                    continue;
+                }
+
                 $existing->put($normalized, true);
+                if ($catalogGame) {
+                    $existingCatalogIds->put($catalogGame->id, true);
+                }
                 $created++;
             }
         });
