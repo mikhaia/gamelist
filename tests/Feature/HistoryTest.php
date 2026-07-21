@@ -16,7 +16,7 @@ class HistoryTest extends TestCase
         $this->get('/history')->assertRedirect(route('login'));
     }
 
-    public function test_history_shows_only_current_users_dated_games_newest_first(): void
+    public function test_history_shows_only_current_users_completed_games_newest_first(): void
     {
         $user = User::factory()->create(['login' => 'chrono']);
         $gameList = $user->gameLists()->create([
@@ -25,6 +25,10 @@ class HistoryTest extends TestCase
         $gameList->games()->create([
             'title' => 'Hades II', 'normalized_title' => 'hades ii', 'status' => 'completed',
             'platform' => 'nintendo_switch', 'started_at' => '2026-07-01', 'completed_at' => '2026-07-11',
+        ]);
+        $gameList->games()->create([
+            'title' => 'Metroid Dread', 'normalized_title' => 'metroid dread', 'status' => 'completed',
+            'platform' => 'nintendo_switch', 'started_at' => '2026-07-12', 'completed_at' => '2026-07-13',
         ]);
         $gameList->games()->create([
             'title' => 'Zelda', 'normalized_title' => 'zelda', 'status' => 'playing',
@@ -40,34 +44,43 @@ class HistoryTest extends TestCase
             'name' => 'Чужой список', 'slug' => 'other', 'default_platform' => 'pc',
         ]);
         $otherList->games()->create([
-            'title' => 'Other Game', 'normalized_title' => 'other game', 'status' => 'playing',
-            'platform' => 'pc', 'started_at' => '2026-07-15',
+            'title' => 'Other Game', 'normalized_title' => 'other game', 'status' => 'completed',
+            'platform' => 'pc', 'started_at' => '2026-07-14', 'completed_at' => '2026-07-15',
         ]);
 
         $page = $this->actingAs($user)->get(route('history.index'));
 
         $page->assertOk()
             ->assertSeeInOrder(['Мои списки', 'Моя история', 'Настройки'])
-            ->assertSeeInOrder(['Zelda', 'Hades II'])
-            ->assertSee('Начал играть')
+            ->assertSeeInOrder(['Metroid Dread', 'Hades II'])
             ->assertSee('Прошёл игру')
             ->assertSee('(за 10 дней)')
             ->assertSee('Основной список')
+            ->assertDontSee('Начал играть')
+            ->assertDontSee('Zelda')
             ->assertDontSee('Undated Game')
             ->assertDontSee('Other Game')
             ->assertDontSee('Чужой список');
 
-        $this->assertSame(3, substr_count($page->getContent(), 'data-history-event'));
+        $this->assertSame(2, substr_count($page->getContent(), 'data-history-event'));
     }
 
     public function test_empty_history_has_helpful_state(): void
     {
         $user = User::factory()->create();
+        $list = $user->gameLists()->create([
+            'name' => 'Started Games', 'slug' => 'started-games', 'default_platform' => 'pc',
+        ]);
+        $list->games()->create([
+            'title' => 'Started Only', 'normalized_title' => 'started only', 'status' => 'playing',
+            'platform' => 'pc', 'started_at' => '2026-07-12',
+        ]);
 
         $this->actingAs($user)
             ->get(route('history.index'))
             ->assertOk()
-            ->assertSee('История пока пуста');
+            ->assertSee('История пока пуста')
+            ->assertDontSee('Started Only');
     }
 
     public function test_completion_duration_uses_days_and_calendar_months(): void
