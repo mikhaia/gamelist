@@ -38,6 +38,9 @@
                                 <span class="text-xs font-extrabold">{{ $user->achievements->count() }}</span>
                             </a>
                         </div>
+                        <a href="{{ route('history.show', $user->login) }}" class="grid size-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-black/15 text-violet-300 transition hover:border-violet-300/30 hover:bg-violet-500/10" title="История {{ '@'.$user->login }}" aria-label="История {{ '@'.$user->login }}" data-profile-history>
+                            <span class="material-symbols-outlined text-xl">history</span>
+                        </a>
                     @endif
                     <x-friend-button :user="$user" :is-friend="$isFriend" compact />
                 </div>

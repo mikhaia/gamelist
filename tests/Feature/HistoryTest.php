@@ -65,6 +65,46 @@ class HistoryTest extends TestCase
         $this->assertSame(2, substr_count($page->getContent(), 'data-history-event'));
     }
 
+    public function test_profile_links_to_public_history_without_exposing_private_lists(): void
+    {
+        $user = User::factory()->create(['login' => 'chrono']);
+        $publicList = $user->gameLists()->create([
+            'name' => 'Public Games', 'slug' => 'public-games', 'default_platform' => 'pc', 'is_public' => true,
+        ]);
+        $privateList = $user->gameLists()->create([
+            'name' => 'Private Games', 'slug' => 'private-games', 'default_platform' => 'pc', 'is_public' => false,
+        ]);
+        $publicGame = $publicList->games()->create([
+            'title' => 'Public Completion', 'normalized_title' => 'public completion', 'status' => 'completed',
+            'platform' => 'pc', 'completed_at' => '2026-07-13',
+        ]);
+        $privateGame = $privateList->games()->create([
+            'title' => 'Private Completion', 'normalized_title' => 'private completion', 'status' => 'completed',
+            'platform' => 'pc', 'completed_at' => '2026-07-14',
+        ]);
+
+        $this->assertSame('/history/@chrono', route('history.show', $user->login, false));
+
+        $this->get(route('profiles.show', $user->login))
+            ->assertOk()
+            ->assertSee('href="'.route('history.show', $user->login).'"', false)
+            ->assertSee('data-profile-history', false);
+
+        $this->get(route('history.show', 'CHRONO'))
+            ->assertOk()
+            ->assertSeeText('История @chrono')
+            ->assertSee('Public Completion')
+            ->assertSee('href="'.route('games.view', $publicGame).'"', false)
+            ->assertDontSee('Private Completion')
+            ->assertDontSee('Private Games');
+
+        $this->actingAs($user)->get(route('history.show', $user->login))
+            ->assertOk()
+            ->assertSee('Public Completion')
+            ->assertSee('Private Completion')
+            ->assertSee('href="'.route('games.edit', $privateGame).'"', false);
+    }
+
     public function test_empty_history_has_helpful_state(): void
     {
         $user = User::factory()->create();

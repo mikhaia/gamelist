@@ -53,7 +53,7 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::get('/achievements', [AchievementController::class, 'index'])->name('achievements.index');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-    Route::get('/history', HistoryController::class)->name('history.index');
+    Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
     Route::get('/friends', [FriendController::class, 'index'])->name('friends.index');
     Route::post('/friends/{friend}', [FriendController::class, 'store'])->name('friends.store');
     Route::delete('/friends/{friend}', [FriendController::class, 'destroy'])->name('friends.destroy');
@@ -94,6 +94,10 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/settings/password', [SettingsController::class, 'password'])->name('settings.password');
     Route::patch('/profile/favorites', [ProfileFavoriteController::class, 'update'])->name('profile.favorites.update');
 });
+
+Route::get('/history/@{login}', [HistoryController::class, 'show'])
+    ->where('login', '[A-Za-z0-9_]+')
+    ->name('history.show');
 
 Route::get('/games/{game}', [GameDetailController::class, 'show'])->name('games.view');
 
