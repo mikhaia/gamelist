@@ -187,7 +187,7 @@ class GameController extends Controller
     private function storeCover(Request $request, ?string $oldPath = null): ?string
     {
         if ($request->hasFile('cover')) {
-            return $this->covers->storeUpload($request->file('cover'), $oldPath);
+            return $this->covers->storeGameCover($request->file('cover'), $oldPath);
         }
 
         $url = $request->input('cover_url') ?: $request->input('catalog_cover_url');

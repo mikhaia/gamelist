@@ -43,7 +43,7 @@ class GameListController extends Controller
         $validated['slug'] = $this->makeSlug($request, $validated['name']);
         $validated['is_public'] = $request->boolean('is_public');
         if ($request->hasFile('cover')) {
-            $validated['cover_path'] = $this->covers->storeUpload($request->file('cover'), null, 'list-covers', 1800, 1200);
+            $validated['cover_path'] = $this->covers->storeListCover($request->file('cover'));
         }
         $gameList = $request->user()->gameLists()->create($validated);
 
@@ -90,13 +90,7 @@ class GameListController extends Controller
         $validated['slug'] = $this->makeSlug($request, $validated['name']);
         $validated['is_public'] = $request->boolean('is_public');
         if ($request->hasFile('cover')) {
-            $validated['cover_path'] = $this->covers->storeUpload(
-                $request->file('cover'),
-                $gameList->cover_path,
-                'list-covers',
-                1800,
-                1200,
-            );
+            $validated['cover_path'] = $this->covers->storeListCover($request->file('cover'), $gameList->cover_path);
         }
         $gameList->update($validated);
 

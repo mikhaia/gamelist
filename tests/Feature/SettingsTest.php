@@ -21,16 +21,37 @@ class SettingsTest extends TestCase
         Storage::disk('public')->put('avatars/old.webp', 'old');
 
         $this->actingAs($user)->patch(route('settings.avatar'), [
-            'avatar' => UploadedFile::fake()->image('avatar.jpg', 800, 800),
+            'avatar' => UploadedFile::fake()->image('avatar.jpg', 800, 600),
         ])->assertRedirect();
 
         $user->refresh();
         Storage::disk('public')->assertMissing('avatars/old.webp');
         Storage::disk('public')->assertExists($user->avatar_path);
+        $this->assertSame(
+            [256, 256],
+            array_slice(getimagesizefromstring(Storage::disk('public')->get($user->avatar_path)), 0, 2),
+        );
         $this->assertDatabaseHas('user_achievements', [
             'user_id' => $user->id,
             'key' => Achievement::Avatar1->value,
         ]);
+    }
+
+    public function test_avatar_editor_is_on_a_dedicated_page(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get(route('settings.edit'))
+            ->assertOk()
+            ->assertSee('href="'.route('settings.avatar.edit').'"', false)
+            ->assertSee('Настроить аватар');
+
+        $this->get(route('settings.avatar.edit'))
+            ->assertOk()
+            ->assertSee('data-avatar-editor', false)
+            ->assertSee('data-avatar-cropper', false)
+            ->assertSee('selection="#avatar-selection"', false)
+            ->assertSee('256×256');
     }
 
     public function test_user_can_change_password_with_current_password(): void

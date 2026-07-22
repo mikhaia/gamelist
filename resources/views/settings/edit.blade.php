@@ -26,6 +26,7 @@
                 <div>
                     <label class="label" for="profile_cover">Новое изображение</label>
                     <input class="field file:mr-3 file:rounded-lg file:border-0 file:bg-violet-500/15 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-violet-300" id="profile_cover" name="profile_cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required>
+                    <p class="mt-2 text-[11px] leading-5 text-slate-500">Для Retina-экранов изображение сохраняется шириной до 2432 пикселей.</p>
                     @error('profile_cover') <p class="field-error">{{ $message }}</p> @enderror
                 </div>
                 <button class="button button-primary"><span class="material-symbols-outlined">image</span> Обновить обложку профиля</button>
@@ -34,23 +35,11 @@
 
         <section class="panel">
             <h2 class="text-lg font-extrabold">Аватар</h2>
-            <p class="mt-1 text-xs leading-5 text-slate-500">Изображение будет оптимизировано и сохранено локально.</p>
-            <form method="POST" enctype="multipart/form-data" action="{{ route('settings.avatar') }}" class="mt-5 space-y-4">
-                @csrf @method('PATCH')
-                <div class="mx-auto grid size-28 place-items-center overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-violet-900/50 to-cyan-950/50">
-                    @if (auth()->user()->avatar_url)
-                        <img src="{{ auth()->user()->avatar_url }}" alt="Аватар" class="h-full w-full object-cover">
-                    @else
-                        <span class="material-symbols-outlined text-5xl text-white/25">person</span>
-                    @endif
-                </div>
-                <div>
-                    <label class="label" for="avatar">Новое изображение</label>
-                    <input class="field file:mr-3 file:rounded-lg file:border-0 file:bg-violet-500/15 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-violet-300" id="avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required>
-                    @error('avatar') <p class="field-error">{{ $message }}</p> @enderror
-                </div>
-                <button class="button button-primary w-full"><span class="material-symbols-outlined">account_circle</span> Обновить аватар</button>
-            </form>
+            <p class="mt-1 text-xs leading-5 text-slate-500">Выберите фотографию и расположите лицо внутри круглой области на отдельной странице.</p>
+            <div class="mt-5 flex flex-col items-center gap-4">
+                <x-avatar :user="auth()->user()" />
+                <a class="button button-primary w-full" href="{{ route('settings.avatar.edit') }}"><span class="material-symbols-outlined">crop</span> Настроить аватар</a>
+            </div>
         </section>
 
         <section class="panel">

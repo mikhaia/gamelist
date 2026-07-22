@@ -28,6 +28,17 @@ body::before {
     mask-image: linear-gradient(to bottom, black, transparent 75%);
 }
 
+[data-avatar-cropper] cropper-canvas {
+    display: block;
+    width: 100%;
+    height: clamp(20rem, 62vh, 38rem);
+    background: #05070d;
+}
+
+[data-avatar-cropper] cropper-selection {
+    border-radius: 9999px;
+}
+
 .material-symbols-outlined {
     display: inline-block;
     width: 1em;

@@ -191,7 +191,7 @@ class GameDetailTest extends TestCase
 
         $this->actingAs($owner)->post(route('games.screenshots.store', $game), [
             'screenshots' => [
-                UploadedFile::fake()->image('one.jpg', 1800, 1200),
+                UploadedFile::fake()->image('one.jpg', 2560, 1440),
                 UploadedFile::fake()->image('two.png', 1200, 800),
             ],
         ])->assertRedirect();
@@ -199,6 +199,10 @@ class GameDetailTest extends TestCase
         $screenshots = $game->screenshots()->get();
         $this->assertCount(2, $screenshots);
         $screenshots->each(fn (GameScreenshot $screenshot) => Storage::disk('public')->assertExists($screenshot->path));
+        $this->assertSame(
+            [1920, 1080],
+            array_slice(getimagesizefromstring(Storage::disk('public')->get($screenshots->first()->path)), 0, 2),
+        );
         $this->get(route('games.view', $game))
             ->assertOk()
             ->assertSee('data-screenshot-open', false)

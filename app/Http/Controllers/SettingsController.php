@@ -22,19 +22,18 @@ class SettingsController extends Controller
         return view('settings.edit');
     }
 
+    public function avatarEdit(): View
+    {
+        return view('settings.avatar');
+    }
+
     public function avatar(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'avatar' => ['required', 'image', 'max:8192'],
         ]);
 
-        $path = $this->images->storeUpload(
-            $validated['avatar'],
-            $request->user()->avatar_path,
-            'avatars',
-            512,
-            512,
-        );
+        $path = $this->images->storeAvatar($validated['avatar'], $request->user()->avatar_path);
         $request->user()->update(['avatar_path' => $path]);
         $this->achievements->evaluate($request->user());
 
@@ -70,13 +69,7 @@ class SettingsController extends Controller
             'profile_cover' => ['required', 'image', 'max:8192'],
         ]);
 
-        $path = $this->images->storeUpload(
-            $validated['profile_cover'],
-            $request->user()->profile_cover_path,
-            'profile-covers',
-            1800,
-            700,
-        );
+        $path = $this->images->storeProfileCover($validated['profile_cover'], $request->user()->profile_cover_path);
         $request->user()->update(['profile_cover_path' => $path]);
 
         return back()->with('success', __('app.messages.profile_cover_updated'));

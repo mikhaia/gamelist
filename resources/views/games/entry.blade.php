@@ -253,7 +253,7 @@
                             @csrf
                             <label class="label" for="screenshots">Добавить скриншоты</label>
                             <input class="field text-xs file:mr-2 file:rounded-lg file:border-0 file:bg-violet-500/15 file:px-2.5 file:py-1.5 file:text-xs file:font-bold file:text-violet-300" id="screenshots" name="screenshots[]" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
-                            <p class="mt-2 text-[11px] leading-5 text-slate-500">До 12 изображений, не более 8 МБ каждое. JPEG, PNG, WebP или GIF.</p>
+                            <p class="mt-2 text-[11px] leading-5 text-slate-500">До 12 изображений, не более 8 МБ каждое. JPEG, PNG, WebP или GIF; большие файлы будут уменьшены до Full HD.</p>
                             @error('screenshots') <p class="field-error">{{ $message }}</p> @enderror
                             @error('screenshots.*') <p class="field-error">{{ $message }}</p> @enderror
                             <button class="button button-secondary mt-3 w-full"><span class="material-symbols-outlined">image</span> Загрузить</button>

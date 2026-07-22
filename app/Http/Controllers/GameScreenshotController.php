@@ -41,7 +41,7 @@ class GameScreenshotController extends Controller
 
         try {
             foreach ($files as $file) {
-                $path = $this->images->storeUpload($file, null, 'game-screenshots', 1600, 1200);
+                $path = $this->images->storeScreenshot($file);
                 $paths[] = $path;
                 $game->screenshots()->create(['path' => $path, 'sort_order' => $nextOrder++]);
             }

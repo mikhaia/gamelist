@@ -253,13 +253,20 @@ class SocialProfileTest extends TestCase
         Storage::disk('public')->put('profile-covers/old.webp', 'old');
 
         $this->actingAs($user)->patch(route('settings.profile-cover'), [
-            'profile_cover' => UploadedFile::fake()->image('profile.jpg', 1800, 700),
+            'profile_cover' => UploadedFile::fake()->image('profile.jpg', 3000, 1800),
         ])->assertRedirect();
 
         $user->refresh();
         Storage::disk('public')->assertMissing('profile-covers/old.webp');
         Storage::disk('public')->assertExists($user->profile_cover_path);
         $this->assertStringEndsWith('.webp', $user->profile_cover_path);
+        [$width, $height] = array_slice(
+            getimagesizefromstring(Storage::disk('public')->get($user->profile_cover_path)),
+            0,
+            2,
+        );
+        $this->assertLessThanOrEqual(2432, $width);
+        $this->assertLessThanOrEqual(1400, $height);
 
         $this->actingAs($user)->get(route('profiles.show', $user->login))
             ->assertOk()

@@ -88,6 +88,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/lists/{gameList}/import', [GameImportController::class, 'store'])->name('imports.store');
 
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
+    Route::get('/settings/avatar', [SettingsController::class, 'avatarEdit'])->name('settings.avatar.edit');
     Route::patch('/settings/avatar', [SettingsController::class, 'avatar'])->name('settings.avatar');
     Route::patch('/settings/email', [SettingsController::class, 'email'])->name('settings.email');
     Route::patch('/settings/profile-cover', [SettingsController::class, 'profileCover'])->name('settings.profile-cover');

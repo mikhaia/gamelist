@@ -11,6 +11,8 @@ use App\Services\HowLongToBeatCatalog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Interfaces\ImageManagerInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,13 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(GameCatalog::class, HowLongToBeatCatalog::class);
+        $this->app->singleton(ImageManagerInterface::class, fn (): ImageManager => new ImageManager(
+            driver: config('intervention-image.driver'),
+            autoOrientation: config('intervention-image.options.autoOrientation', true),
+            decodeAnimation: config('intervention-image.options.decodeAnimation', false),
+            backgroundColor: config('intervention-image.options.backgroundColor', 'ffffff'),
+            strip: config('intervention-image.options.strip', true),
+        ));
     }
 
     /**

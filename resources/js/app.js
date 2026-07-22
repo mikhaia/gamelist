@@ -1148,12 +1148,203 @@ document.addEventListener('click', async (event) => {
     }
 });
 
+const avatarCropperTemplate = `
+    <cropper-canvas background theme-color="#8b5cf6">
+        <cropper-image rotatable scalable translatable></cropper-image>
+        <cropper-shade hidden></cropper-shade>
+        <cropper-handle action="move" plain></cropper-handle>
+        <cropper-selection id="avatar-selection" initial-coverage="0.72" initial-aspect-ratio="1" aspect-ratio="1" movable resizable keyboard outlined>
+            <cropper-grid role="grid" bordered covered></cropper-grid>
+            <cropper-crosshair centered></cropper-crosshair>
+            <cropper-handle action="move" theme-color="rgba(139, 92, 246, 0.35)"></cropper-handle>
+            <cropper-handle action="n-resize"></cropper-handle>
+            <cropper-handle action="e-resize"></cropper-handle>
+            <cropper-handle action="s-resize"></cropper-handle>
+            <cropper-handle action="w-resize"></cropper-handle>
+            <cropper-handle action="ne-resize"></cropper-handle>
+            <cropper-handle action="nw-resize"></cropper-handle>
+            <cropper-handle action="se-resize"></cropper-handle>
+            <cropper-handle action="sw-resize"></cropper-handle>
+        </cropper-selection>
+    </cropper-canvas>
+`;
+
+function canvasBlob(canvas, type, quality) {
+    return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+function resetAvatarCrop(cropper) {
+    const canvas = cropper.getCropperCanvas();
+    const cropperImage = cropper.getCropperImage();
+    const selection = cropper.getCropperSelection();
+    const size = Math.min(canvas.clientWidth, canvas.clientHeight) * 0.72;
+
+    cropperImage.$resetTransform().$center('contain');
+    selection.$change(
+        (canvas.clientWidth - size) / 2,
+        (canvas.clientHeight - size) / 2,
+        size,
+        size,
+        1,
+    );
+}
+
+function initializeAvatarEditor() {
+    const editor = document.querySelector('[data-avatar-editor]');
+    if (!editor) return;
+
+    const form = editor.querySelector('[data-avatar-form]');
+    const input = editor.querySelector('[data-avatar-input]');
+    const placeholder = editor.querySelector('[data-avatar-placeholder]');
+    const cropperContainer = editor.querySelector('[data-avatar-cropper]');
+    const controls = editor.querySelector('[data-avatar-controls]');
+    const currentPreview = editor.querySelector('[data-avatar-current]');
+    const viewer = editor.querySelector('[data-avatar-viewer]');
+    const preview = editor.querySelector('[data-avatar-preview]');
+    const submit = editor.querySelector('[data-avatar-submit]');
+    const submitLabel = editor.querySelector('[data-avatar-submit-label]');
+    const error = editor.querySelector('[data-avatar-error]');
+    let cropper = null;
+    let objectUrl = null;
+    let processing = false;
+    let cropperModule = null;
+
+    function showError(message) {
+        error.textContent = message;
+        error.classList.toggle('hidden', !message);
+    }
+
+    async function openImage(file) {
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            showError('Выберите файл изображения.');
+            input.value = '';
+            return;
+        }
+        if (file.size > 8 * 1024 * 1024) {
+            showError('Файл не должен быть больше 8 МБ.');
+            input.value = '';
+            return;
+        }
+
+        showError('');
+        submit.disabled = true;
+        submitLabel.textContent = 'Открываем фотографию…';
+
+        try {
+            cropperModule ??= import('cropperjs');
+            const { default: Cropper } = await cropperModule;
+
+            cropper?.destroy();
+            cropperContainer.replaceChildren();
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            objectUrl = URL.createObjectURL(file);
+
+            const image = new Image();
+            image.alt = 'Фотография для кадрирования';
+            image.src = objectUrl;
+            cropperContainer.appendChild(image);
+            placeholder.classList.add('hidden');
+            cropperContainer.classList.remove('hidden');
+
+            cropper = new Cropper(image, {
+                container: cropperContainer,
+                template: avatarCropperTemplate,
+            });
+
+            const cropperImage = cropper.getCropperImage();
+            const selection = cropper.getCropperSelection();
+            await cropperImage.$ready();
+            selection.aspectRatio = 1;
+            selection.initialAspectRatio = 1;
+            resetAvatarCrop(cropper);
+
+            currentPreview?.classList.add('hidden');
+            viewer.hidden = false;
+            preview.appendChild(viewer);
+            controls.classList.remove('hidden');
+            controls.classList.add('flex');
+            submit.disabled = false;
+            submitLabel.textContent = 'Сохранить аватар';
+        } catch {
+            showError('Не удалось открыть фотографию. Попробуйте другой файл.');
+            submit.disabled = true;
+            submitLabel.textContent = 'Сохранить аватар';
+        }
+    }
+
+    input.addEventListener('change', () => openImage(input.files[0]));
+
+    controls.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-avatar-action]');
+        if (!button || !cropper) return;
+
+        const cropperImage = cropper.getCropperImage();
+        switch (button.dataset.avatarAction) {
+            case 'zoom-in':
+                cropperImage.$zoom(0.1);
+                break;
+            case 'zoom-out':
+                cropperImage.$zoom(-0.1);
+                break;
+            case 'rotate-left':
+                cropperImage.$rotate('-90deg');
+                break;
+            case 'rotate-right':
+                cropperImage.$rotate('90deg');
+                break;
+            case 'reset':
+                resetAvatarCrop(cropper);
+                break;
+            default:
+                break;
+        }
+    });
+
+    form.addEventListener('submit', async (event) => {
+        if (processing || !cropper) return;
+
+        event.preventDefault();
+        showError('');
+        submit.disabled = true;
+        submitLabel.textContent = 'Подготавливаем аватар…';
+
+        try {
+            const canvas = await cropper.getCropperSelection().$toCanvas({
+                width: 512,
+                height: 512,
+                beforeDraw(context) {
+                    context.imageSmoothingEnabled = true;
+                    context.imageSmoothingQuality = 'high';
+                },
+            });
+            const blob = await canvasBlob(canvas, 'image/webp', 0.92);
+            if (!blob || typeof DataTransfer === 'undefined') throw new Error('Unable to prepare crop');
+
+            const extension = blob.type === 'image/webp' ? 'webp' : 'png';
+            const croppedFile = new File([blob], `avatar.${extension}`, { type: blob.type });
+            const transfer = new DataTransfer();
+            transfer.items.add(croppedFile);
+            input.files = transfer.files;
+            processing = true;
+            HTMLFormElement.prototype.submit.call(form);
+        } catch {
+            submit.disabled = false;
+            submitLabel.textContent = 'Сохранить аватар';
+            showError('Не удалось подготовить выбранную область. Попробуйте изменить масштаб или выбрать другую фотографию.');
+        }
+    });
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initializeCatalogSearch();
         initializeCatalogBrowser();
+        initializeAvatarEditor();
     });
 } else {
     initializeCatalogSearch();
     initializeCatalogBrowser();
+    initializeAvatarEditor();
 }
