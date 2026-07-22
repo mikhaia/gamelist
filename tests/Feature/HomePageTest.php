@@ -66,4 +66,27 @@ class HomePageTest extends TestCase
             ->assertSee('fonts/material-symbols-outlined.woff2', false)
             ->assertDontSee('family=Material+Symbols+Outlined', false);
     }
+
+    public function test_yandex_metrika_counter_is_loaded_once(): void
+    {
+        $page = $this->get(route('home'));
+
+        $page->assertOk()
+            ->assertSee('https://mc.yandex.ru/metrika/tag.js?id=110936413', false)
+            ->assertSee("ym(110936413, 'init'", false)
+            ->assertSee('https://mc.yandex.ru/watch/110936413', false);
+
+        $this->assertSame(1, substr_count($page->getContent(), "ym(110936413, 'init'"));
+    }
+
+    public function test_google_analytics_tag_is_loaded_once(): void
+    {
+        $page = $this->get(route('home'));
+
+        $page->assertOk()
+            ->assertSee('https://www.googletagmanager.com/gtag/js?id=G-1SYC1T2FGV', false)
+            ->assertSee("gtag('config', 'G-1SYC1T2FGV')", false);
+
+        $this->assertSame(1, substr_count($page->getContent(), "gtag('config', 'G-1SYC1T2FGV')"));
+    }
 }
