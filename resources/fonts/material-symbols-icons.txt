@@ -1,6 +1,7 @@
 account_circle
 add
 add_circle
+add_photo_alternate
 arrow_back
 arrow_forward
 auto_awesome
@@ -13,12 +14,15 @@ check_circle
 close
 cloud_off
 content_copy
+crop
 delete
 devices
 download_done
 edit
+edit_note
 error
 expand_more
+face
 filter_alt
 filter_alt_off
 flag
@@ -40,7 +44,10 @@ playlist_add
 preview
 progress_activity
 public
+restart_alt
 rocket_launch
+rotate_left
+rotate_right
 save
 schedule
 search
@@ -56,3 +63,5 @@ view_agenda
 view_kanban
 view_list
 workspace_premium
+zoom_in
+zoom_out
