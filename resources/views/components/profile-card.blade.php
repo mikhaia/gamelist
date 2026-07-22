@@ -26,18 +26,6 @@
                 </div>
                 <div class="flex items-start gap-2">
                     @if (! $compact)
-                        <div class="flex items-center gap-1.5">
-                            @foreach ($recentAchievements as $award)
-                                @php($achievement = $award->key)
-                                <a href="{{ route('achievements.show', $user) }}" class="grid size-11 shrink-0 place-items-center rounded-2xl ring-1 transition hover:scale-105 {{ $achievement->colorClasses() }}" title="{{ $achievement->title() }} — {{ $award->awarded_at->format('d.m.Y') }}" aria-label="{{ $achievement->title() }}">
-                                    <span class="material-symbols-outlined text-xl">{{ $achievement->icon() }}</span>
-                                </a>
-                            @endforeach
-                            <a href="{{ route('achievements.show', $user) }}" class="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-2xl border border-white/10 bg-black/15 px-2 text-amber-300 transition hover:border-amber-300/30 hover:bg-amber-500/10" title="Все достижения: {{ $user->achievements->count() }}" aria-label="Все достижения: {{ $user->achievements->count() }}">
-                                <span class="material-symbols-outlined text-xl">workspace_premium</span>
-                                <span class="text-xs font-extrabold">{{ $user->achievements->count() }}</span>
-                            </a>
-                        </div>
                         <a href="{{ route('history.show', $user->login) }}" class="grid size-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-black/15 text-violet-300 transition hover:border-violet-300/30 hover:bg-violet-500/10" title="История {{ '@'.$user->login }}" aria-label="История {{ '@'.$user->login }}" data-profile-history>
                             <span class="material-symbols-outlined text-xl">history</span>
                         </a>
@@ -46,27 +34,10 @@
                 </div>
             </div>
 
-            @if (collect($stats['statuses'])->filter()->isNotEmpty() || $stats['friends'] || $stats['public_lists'] || $stats['public_games'])
-                @php($statusIconClasses = [
-                    'want_to_play' => 'bg-violet-500/10 text-violet-300',
-                    'installed' => 'bg-sky-500/10 text-sky-300',
-                    'playing' => 'bg-cyan-500/10 text-cyan-300',
-                    'completed' => 'bg-amber-500/10 text-amber-300',
-                    'dropped' => 'bg-rose-500/10 text-rose-300',
-                ])
-                <div class="mt-3 flex flex-wrap gap-5 border-t border-white/10 pt-3">
-                    @foreach (\App\Enums\GameStatus::cases() as $status)
-                        @if ($stats['statuses'][$status->value])
-                            <span class="inline-flex items-center gap-2" title="{{ $status->label() }}" aria-label="{{ $status->label() }}: {{ $stats['statuses'][$status->value] }}">
-                                <span class="grid size-12 shrink-0 place-items-center rounded-2xl {{ $statusIconClasses[$status->value] }}">
-                                    <span class="material-symbols-outlined text-2xl" aria-hidden="true">{{ $status->icon() }}</span>
-                                </span>
-                                <strong class="text-base font-extrabold text-white">{{ $stats['statuses'][$status->value] }}</strong>
-                            </span>
-                        @endif
-                    @endforeach
+            @if (! $compact || $stats['friends'] || $stats['public_lists'] || $stats['public_games'])
+                <div class="mt-3 flex flex-wrap items-center gap-5 border-t border-white/10 pt-3">
                     @if ($stats['friends'] || $stats['public_lists'] || $stats['public_games'])
-                        <div class="ml-auto flex flex-wrap gap-5">
+                        <div class="flex flex-wrap gap-5" data-profile-summary-counts>
                             @if ($stats['friends'])
                                 <span class="inline-flex items-center gap-2" title="{{ trans_choice('app.counts.friends', $stats['friends']) }}" aria-label="{{ trans_choice('app.counts.friends', $stats['friends']) }}: {{ $stats['friends'] }}">
                                     <span class="grid size-12 shrink-0 place-items-center rounded-2xl bg-sky-500/10 text-sky-300"><span class="material-symbols-outlined text-2xl" aria-hidden="true">groups</span></span>
@@ -85,6 +56,20 @@
                                     <strong class="text-base font-extrabold text-white">{{ $stats['public_games'] }}</strong>
                                 </span>
                             @endif
+                        </div>
+                    @endif
+                    @if (! $compact)
+                        <div class="ml-auto flex items-center gap-1.5" data-profile-achievements>
+                            @foreach ($recentAchievements as $award)
+                                @php($achievement = $award->key)
+                                <a href="{{ route('achievements.show', $user) }}" class="grid size-11 shrink-0 place-items-center rounded-2xl ring-1 transition hover:scale-105 {{ $achievement->colorClasses() }}" title="{{ $achievement->title() }} — {{ $award->awarded_at->format('d.m.Y') }}" aria-label="{{ $achievement->title() }}">
+                                    <span class="material-symbols-outlined text-xl">{{ $achievement->icon() }}</span>
+                                </a>
+                            @endforeach
+                            <a href="{{ route('achievements.show', $user) }}" class="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-1 rounded-2xl border border-white/10 bg-black/15 px-2 text-amber-300 transition hover:border-amber-300/30 hover:bg-amber-500/10" title="Все достижения: {{ $user->achievements->count() }}" aria-label="Все достижения: {{ $user->achievements->count() }}">
+                                <span class="material-symbols-outlined text-xl">workspace_premium</span>
+                                <span class="text-xs font-extrabold">{{ $user->achievements->count() }}</span>
+                            </a>
                         </div>
                     @endif
                 </div>

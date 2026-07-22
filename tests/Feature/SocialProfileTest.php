@@ -94,6 +94,14 @@ class SocialProfileTest extends TestCase
             ->assertSeeText('Добавлена 04.01.2026')
             ->assertSeeText('Начал 05.02.2026')
             ->assertSeeText('Закончил 06.03.2026')
+            ->assertSeeInOrder([
+                'data-profile-status-count="want_to_play"',
+                'data-count="4"',
+                'data-profile-status-count="playing"',
+                'data-count="2"',
+                'data-profile-status-count="completed"',
+                'data-count="2"',
+            ], false)
             ->assertDontSee('Want Older')
             ->assertDontSee('Secret Playing');
         $this->assertSame(3, substr_count($response->getContent(), 'data-profile-status-column='));
@@ -137,7 +145,12 @@ class SocialProfileTest extends TestCase
             ->assertDontSee('Private Games')
             ->assertSee('aria-label="публичный список: 1"', false)
             ->assertSee('aria-label="игра: 1"', false)
-            ->assertSee('aria-label="Играю: 1"', false)
+            ->assertDontSee('title="Играю" aria-label="Играю: 1"', false)
+            ->assertSeeInOrder([
+                'data-profile-history',
+                'data-profile-summary-counts',
+                'data-profile-achievements',
+            ], false)
             ->assertSee('sports_esports')
             ->assertDontSeeText('Пройдено · 1');
     }

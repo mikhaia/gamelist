@@ -6,7 +6,7 @@
 <div class="relative mb-8 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-violet-950/45 to-cyan-950/30 px-5 py-10 text-center shadow-2xl shadow-black/20 sm:mb-10 sm:px-8 sm:py-14">
     @if ($gameList->cover_url)
         <img src="{{ $gameList->cover_url }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-90">
-        <div class="absolute inset-0 bg-[#080a14]/35"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-[#080a14]/90 via-[#080a14]/55 to-[#080a14]/15"></div>
     @endif
     <div class="relative">
         <div class="mb-3 flex flex-wrap items-center justify-center gap-2">

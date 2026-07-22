@@ -83,7 +83,7 @@ class HistoryTest extends TestCase
             'platform' => 'pc', 'completed_at' => '2026-07-14',
         ]);
 
-        $this->assertSame('/history/@chrono', route('history.show', $user->login, false));
+        $this->assertSame('/history/chrono', route('history.show', $user->login, false));
 
         $this->get(route('profiles.show', $user->login))
             ->assertOk()

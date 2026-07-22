@@ -191,5 +191,9 @@ class GameListTest extends TestCase
         Storage::disk('public')->assertMissing('list-covers/old.webp');
         Storage::disk('public')->assertExists($list->cover_path);
         $this->assertStringEndsWith('.webp', $list->cover_path);
+
+        $this->get(route('public.lists.show', [$user->login, $list->slug]))
+            ->assertOk()
+            ->assertSee('bg-gradient-to-r from-[#080a14]/90 via-[#080a14]/55 to-[#080a14]/15', false);
     }
 }

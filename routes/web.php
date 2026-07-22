@@ -96,7 +96,7 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/profile/favorites', [ProfileFavoriteController::class, 'update'])->name('profile.favorites.update');
 });
 
-Route::get('/history/@{login}', [HistoryController::class, 'show'])
+Route::get('/history/{login}', [HistoryController::class, 'show'])
     ->where('login', '[A-Za-z0-9_]+')
     ->name('history.show');
 
