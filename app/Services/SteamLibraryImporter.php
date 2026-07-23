@@ -80,6 +80,7 @@ class SteamLibraryImporter
                         GameStatus::Completed->value,
                         GameStatus::Completed100->value,
                     ],
+                    'display_mode' => 'board',
                     'is_public' => false,
                 ]);
 

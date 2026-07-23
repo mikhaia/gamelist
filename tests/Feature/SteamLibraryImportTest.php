@@ -96,6 +96,7 @@ class SteamLibraryImportTest extends TestCase
         $this->assertSame('Игры из Steam', $list->name);
         $this->assertSame('Мои игры из Steam', $list->description);
         $this->assertSame(Platform::Steam->value, $list->default_platform);
+        $this->assertSame('board', $list->display_mode);
         $this->assertFalse($list->is_public);
         $this->assertSame([
             GameStatus::WantToPlay->value,
