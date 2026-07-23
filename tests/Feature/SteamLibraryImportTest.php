@@ -31,6 +31,11 @@ class SteamLibraryImportTest extends TestCase
     public function test_linked_user_sees_translucent_steam_library_card(): void
     {
         $linkedUser = User::factory()->create(['steam_id' => self::STEAM_ID]);
+        $linkedUser->gameLists()->create([
+            'name' => 'Ранее созданный список',
+            'slug' => 'existing-list',
+            'default_platform' => Platform::Pc->value,
+        ]);
 
         $this->actingAs($linkedUser)->get(route('lists.index'))
             ->assertOk()
@@ -38,6 +43,7 @@ class SteamLibraryImportTest extends TestCase
             ->assertSee('Игры из Steam')
             ->assertSee(asset('images/steam/list-cover.webp'))
             ->assertSee('opacity-75', false)
+            ->assertSeeInOrder(['Ранее созданный список', 'data-steam-library-import'], false)
             ->assertSee('action="'.route('lists.steam.import').'"', false);
 
         $unlinkedUser = User::factory()->create();
@@ -50,23 +56,42 @@ class SteamLibraryImportTest extends TestCase
     {
         Storage::fake('public');
         $user = User::factory()->create(['steam_id' => self::STEAM_ID]);
-        Http::fake([
-            'https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/*' => Http::response([
-                'response' => [
-                    'game_count' => 2,
-                    'games' => [
-                        ['appid' => 620, 'name' => 'Portal 2', 'playtime_forever' => 700],
-                        ['appid' => 70, 'name' => 'Half-Life', 'playtime_forever' => 0],
+        Http::fake(function (Request $request) {
+            if (str_contains($request->url(), '/IPlayerService/GetOwnedGames/')) {
+                return Http::response([
+                    'response' => [
+                        'game_count' => 3,
+                        'games' => [
+                            ['appid' => 620, 'name' => 'Portal 2', 'playtime_forever' => 700],
+                            ['appid' => 70, 'name' => 'Half-Life', 'playtime_forever' => 0],
+                            ['appid' => 10, 'name' => 'Counter-Strike', 'playtime_forever' => 120],
+                        ],
                     ],
-                ],
-            ]),
-        ]);
+                ]);
+            }
+
+            if (str_contains($request->url(), '/ISteamUserStats/GetPlayerAchievements/')) {
+                $achievements = (int) $request['appid'] === 620
+                    ? [['apiname' => 'FIRST', 'achieved' => 1], ['apiname' => 'SECOND', 'achieved' => 1]]
+                    : [['apiname' => 'FIRST', 'achieved' => 1], ['apiname' => 'SECOND', 'achieved' => 0]];
+
+                return Http::response([
+                    'playerstats' => [
+                        'steamID' => self::STEAM_ID,
+                        'achievements' => $achievements,
+                        'success' => true,
+                    ],
+                ]);
+            }
+
+            return Http::response([], 404);
+        });
 
         $response = $this->actingAs($user)->post(route('lists.steam.import'));
 
         $list = GameList::query()->where('user_id', $user->id)->where('slug', 'steam')->firstOrFail();
         $response->assertRedirect(route('lists.show', $list))
-            ->assertSessionHas('success', __('app.messages.steam_library_imported', ['count' => 2]));
+            ->assertSessionHas('success', __('app.messages.steam_library_imported', ['count' => 3]));
 
         $this->assertSame('Игры из Steam', $list->name);
         $this->assertSame('Мои игры из Steam', $list->description);
@@ -80,17 +105,31 @@ class SteamLibraryImportTest extends TestCase
         ], $list->available_statuses);
         Storage::disk('public')->assertExists($list->cover_path);
 
-        $this->assertDatabaseCount('games', 2);
+        $this->assertDatabaseCount('games', 3);
         $this->assertDatabaseHas('games', [
             'game_list_id' => $list->id,
             'title' => 'Portal 2',
-            'status' => GameStatus::WantToPlay->value,
+            'status' => GameStatus::Completed100->value,
             'platform' => Platform::Steam->value,
             'source_cover_url' => 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/620/library_600x900.jpg',
         ]);
+        $this->assertDatabaseHas('games', [
+            'game_list_id' => $list->id,
+            'title' => 'Counter-Strike',
+            'status' => GameStatus::Playing->value,
+        ]);
+        $this->assertDatabaseHas('games', [
+            'game_list_id' => $list->id,
+            'title' => 'Half-Life',
+            'status' => GameStatus::WantToPlay->value,
+        ]);
         $this->assertDatabaseHas('catalog_games', ['steam_id' => '620', 'title' => 'Portal 2']);
         $this->assertDatabaseHas('catalog_games', ['steam_id' => '70', 'title' => 'Half-Life']);
-        $this->assertDatabaseCount('game_status_events', 2);
+        $this->assertDatabaseHas('catalog_games', ['steam_id' => '10', 'title' => 'Counter-Strike']);
+        $this->assertDatabaseCount('game_status_events', 3);
+        $this->assertDatabaseHas('game_status_events', ['status' => GameStatus::Completed100->value]);
+        $this->assertDatabaseHas('game_status_events', ['status' => GameStatus::Playing->value]);
+        $this->assertDatabaseHas('game_status_events', ['status' => GameStatus::WantToPlay->value]);
         $this->assertSame(
             'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/620/library_600x900.jpg',
             $list->games()->where('title', 'Portal 2')->firstOrFail()->cover_url,
@@ -101,6 +140,12 @@ class SteamLibraryImportTest extends TestCase
             && $request['steamid'] === self::STEAM_ID
             && (bool) $request['include_appinfo']
             && (bool) $request['include_played_free_games']);
+        Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/ISteamUserStats/GetPlayerAchievements/v0001/')
+            && (int) $request['appid'] === 620);
+        Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/ISteamUserStats/GetPlayerAchievements/v0001/')
+            && (int) $request['appid'] === 10);
+        Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/ISteamUserStats/GetPlayerAchievements/v0001/')
+            && (int) $request['appid'] === 70);
 
         $this->get(route('lists.index'))
             ->assertOk()

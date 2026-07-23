@@ -43,6 +43,24 @@ class SteamLibraryImporter
                 'cover_url' => $this->coverUrl($game['appid']),
             ])
             ->filter(fn (array $game): bool => $game['normalized_title'] !== '')
+            ->values();
+        $completedAppIds = collect($this->steam->completedAchievementAppIds(
+            (string) $user->steam_id,
+            $steamGames
+                ->where('playtime_minutes', '>', 0)
+                ->pluck('appid')
+                ->all(),
+        ))->mapWithKeys(fn (int $appId): array => [(string) $appId => true]);
+        $steamGames = $steamGames
+            ->map(function (array $game) use ($completedAppIds): array {
+                $game['status'] = match (true) {
+                    $completedAppIds->has((string) $game['appid']) => GameStatus::Completed100->value,
+                    $game['playtime_minutes'] > 0 => GameStatus::Playing->value,
+                    default => GameStatus::WantToPlay->value,
+                };
+
+                return $game;
+            })
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
             ->values();
 
@@ -79,7 +97,7 @@ class SteamLibraryImporter
                         'catalog_game_id' => $catalogGame?->id,
                         'title' => $steamGame['name'],
                         'normalized_title' => $steamGame['normalized_title'],
-                        'status' => GameStatus::WantToPlay->value,
+                        'status' => $steamGame['status'],
                         'platform' => Platform::Steam->value,
                         'source_cover_url' => $catalogGame?->cover_url ?: $steamGame['cover_url'],
                         'sort_order' => $index,
@@ -91,14 +109,14 @@ class SteamLibraryImporter
                 $rows->chunk(500)->each(fn (Collection $chunk) => DB::table('games')->insert($chunk->all()));
 
                 $gameList->games()
-                    ->select(['id', 'created_at'])
+                    ->select(['id', 'status', 'created_at'])
                     ->reorder()
                     ->orderBy('id')
                     ->chunkById(500, function ($games): void {
                         DB::table('game_status_events')->insert(
                             $games->map(fn ($game): array => [
                                 'game_id' => $game->id,
-                                'status' => GameStatus::WantToPlay->value,
+                                'status' => $game->status->value,
                                 'changed_at' => $game->created_at,
                             ])->all(),
                         );

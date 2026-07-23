@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\SteamLibraryException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -11,7 +12,7 @@ use Throwable;
 class SteamWebApi
 {
     /**
-     * @return array<int, array{appid: int, name: string}>
+     * @return array<int, array{appid: int, name: string, playtime_minutes: int}>
      *
      * @throws SteamLibraryException
      */
@@ -57,10 +58,75 @@ class SteamWebApi
             ->map(fn (array $game): array => [
                 'appid' => (int) $game['appid'],
                 'name' => trim((string) $game['name']),
+                'playtime_minutes' => max(0, (int) ($game['playtime_forever'] ?? 0)),
             ])
             ->unique('appid')
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $appIds
+     * @return array<int, int>
+     */
+    public function completedAchievementAppIds(string $steamId, array $appIds): array
+    {
+        $key = trim((string) config('services.steam.key'));
+        $appIds = collect($appIds)
+            ->map(fn (mixed $appId): int => (int) $appId)
+            ->filter(fn (int $appId): bool => $appId > 0)
+            ->unique()
+            ->values();
+
+        if ($key === '' || $appIds->isEmpty()) {
+            return [];
+        }
+
+        $completed = [];
+
+        foreach ($appIds->chunk(40) as $chunk) {
+            try {
+                $responses = Http::acceptJson()->pool(function (Pool $pool) use ($chunk, $key, $steamId): void {
+                    foreach ($chunk as $appId) {
+                        $pool->as((string) $appId)
+                            ->connectTimeout(3)
+                            ->timeout(8)
+                            ->retry(2, 200, throw: false)
+                            ->get($this->endpoint('ISteamUserStats/GetPlayerAchievements/v0001/'), [
+                                'key' => $key,
+                                'steamid' => $steamId,
+                                'appid' => $appId,
+                            ]);
+                    }
+                }, concurrency: 8);
+            } catch (Throwable) {
+                continue;
+            }
+
+            foreach ($responses as $appId => $response) {
+                if (! $response instanceof Response || ! $response->successful()) {
+                    continue;
+                }
+
+                $achievements = $response->json('playerstats.achievements');
+                if ($response->json('playerstats.success') !== true
+                    || ! is_array($achievements)
+                    || $achievements === []) {
+                    continue;
+                }
+
+                $allUnlocked = collect($achievements)->every(
+                    fn (mixed $achievement): bool => is_array($achievement)
+                        && (int) ($achievement['achieved'] ?? 0) === 1,
+                );
+
+                if ($allUnlocked) {
+                    $completed[] = (int) $appId;
+                }
+            }
+        }
+
+        return $completed;
     }
 
     private function client(): PendingRequest
@@ -70,6 +136,11 @@ class SteamWebApi
             ->connectTimeout(5)
             ->timeout(20)
             ->retry(2, 300, throw: false);
+    }
+
+    private function endpoint(string $path): string
+    {
+        return rtrim((string) config('services.steam.api_url'), '/').'/'.ltrim($path, '/');
     }
 
     /** @throws SteamLibraryException */
