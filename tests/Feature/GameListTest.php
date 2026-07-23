@@ -107,7 +107,15 @@ class GameListTest extends TestCase
 
         $query = ['status' => ['playing']];
         $this->actingAs($user)->get(route('lists.show', ['gameList' => $list] + $query))
-            ->assertOk()->assertSee('Playing Game')->assertDontSee('Completed Game');
+            ->assertOk()
+            ->assertSee('Playing Game')
+            ->assertDontSee('Completed Game')
+            ->assertSee('data-list-heading', false)
+            ->assertSee('data-list-settings', false)
+            ->assertSee('data-list-add-game', false)
+            ->assertSee('bg-white/85 text-slate-950', false)
+            ->assertSee('href="'.$list->public_path.'" target="_blank" rel="noopener noreferrer"', false)
+            ->assertSee('data-public-list-link', false);
         $this->get(route('public.lists.show', ['login' => 'chrono', 'slug' => 'games'] + $query))
             ->assertOk()->assertSee('Playing Game')->assertDontSee('Completed Game');
 
@@ -171,7 +179,7 @@ class GameListTest extends TestCase
     public function test_list_cover_is_optimized_and_replaced(): void
     {
         Storage::fake('public');
-        $user = User::factory()->create();
+        $user = User::factory()->create(['login' => 'cover_player']);
         $list = $user->gameLists()->create([
             'name' => 'Games', 'slug' => 'games', 'default_platform' => 'nintendo_switch',
             'cover_path' => 'list-covers/old.webp',
@@ -194,6 +202,9 @@ class GameListTest extends TestCase
 
         $this->get(route('public.lists.show', [$user->login, $list->slug]))
             ->assertOk()
+            ->assertSee('p-5 text-left', false)
+            ->assertSee('mb-3 flex flex-wrap items-center gap-2', false)
+            ->assertDontSee('mb-3 flex flex-wrap items-center justify-center gap-2', false)
             ->assertSee('bg-gradient-to-r from-[#080a14]/90 via-[#080a14]/55 to-[#080a14]/15', false);
     }
 }
