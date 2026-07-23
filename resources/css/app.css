@@ -28,6 +28,20 @@ body::before {
     mask-image: linear-gradient(to bottom, black, transparent 75%);
 }
 
+body.admin-body {
+    color-scheme: light;
+    background:
+        radial-gradient(circle at 78% 0%, rgba(124, 58, 237, .16), transparent 34rem),
+        radial-gradient(circle at 20% 70%, rgba(8, 145, 178, .12), transparent 30rem),
+        linear-gradient(145deg, #f8fafc 0%, #eef2ff 48%, #f0fdfa 100%);
+}
+
+body.admin-body::before {
+    opacity: .42;
+    background-image: linear-gradient(rgba(15,23,42,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,.055) 1px, transparent 1px);
+    mask-image: linear-gradient(to bottom, black, transparent 92%);
+}
+
 [data-avatar-cropper] cropper-canvas {
     display: block;
     width: 100%;
@@ -100,6 +114,10 @@ body::before {
     .markdown-content pre code { @apply bg-transparent p-0; }
     .markdown-content img { @apply max-h-[32rem] max-w-full rounded-2xl border border-white/10 object-contain; }
     .markdown-content hr { @apply border-white/10; }
+    .admin-panel { @apply rounded-3xl border border-white/80 bg-white/65 shadow-xl shadow-slate-900/10 backdrop-blur-xl; }
+    .admin-field { @apply w-full rounded-xl border border-slate-200/90 bg-white/75 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:ring-3 focus:ring-violet-500/10; }
+    .admin-button { @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-950 bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400/60; }
+    .admin-kicker { @apply text-xs font-extrabold uppercase tracking-[.18em] text-violet-600; }
 }
 
 @keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } }

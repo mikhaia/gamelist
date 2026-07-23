@@ -17,6 +17,7 @@ content_copy
 crop
 delete
 devices
+download
 download_done
 edit
 edit_note

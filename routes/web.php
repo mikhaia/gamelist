@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\AchievementController;
+use App\Http\Controllers\Admin\CatalogGameController as AdminCatalogGameController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\FileController as AdminFileController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\OtpPasswordResetController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -26,6 +30,7 @@ use App\Http\Controllers\PublicListController;
 use App\Http\Controllers\PublicProfileController;
 use App\Http\Controllers\RawgCatalogSearchController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -95,6 +100,22 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/settings/password', [SettingsController::class, 'password'])->name('settings.password');
     Route::patch('/profile/favorites', [ProfileFavoriteController::class, 'update'])->name('profile.favorites.update');
 });
+
+Route::prefix('admin')
+    ->name('admin.')
+    ->middleware(['auth', EnsureUserIsAdmin::class])
+    ->group(function (): void {
+        Route::get('/', AdminDashboardController::class)->name('dashboard');
+        Route::get('/users', AdminUserController::class)->name('users.index');
+        Route::get('/games', AdminCatalogGameController::class)->name('games.index');
+        Route::get('/files/{type?}', [AdminFileController::class, 'index'])
+            ->where('type', 'screenshots|avatars|list-covers|game-covers')
+            ->name('files.index');
+        Route::get('/files/{type}/{id}/download', [AdminFileController::class, 'download'])
+            ->where('type', 'screenshots|avatars|list-covers|game-covers')
+            ->whereNumber('id')
+            ->name('files.download');
+    });
 
 Route::get('/history/{login}', [HistoryController::class, 'show'])
     ->where('login', '[A-Za-z0-9_]+')

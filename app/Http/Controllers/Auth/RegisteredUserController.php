@@ -36,7 +36,7 @@ class RegisteredUserController extends Controller
         $validated = $request->validate([
             'login' => [
                 'required', 'string', 'min:3', 'max:32', 'regex:/^[a-zA-Z0-9_]+$/',
-                Rule::notIn(['achievements', 'catalog', 'friend', 'friends', 'game', 'games', 'history', 'lists', 'login', 'logout', 'notifications', 'profile', 'register', 'search', 'settings', 'up']),
+                Rule::notIn(['achievements', 'admin', 'catalog', 'friend', 'friends', 'game', 'games', 'history', 'lists', 'login', 'logout', 'notifications', 'profile', 'register', 'search', 'settings', 'up']),
                 'unique:users,login',
             ],
             'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],

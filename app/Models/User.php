@@ -17,8 +17,12 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $attributes = [
+        'is_admin' => false,
+    ];
+
     protected $fillable = [
-        'login', 'email', 'password', 'avatar_path', 'profile_cover_path', 'last_seen_at', 'inactive_reminder_sent_at',
+        'login', 'email', 'password', 'is_admin', 'avatar_path', 'profile_cover_path', 'last_seen_at', 'inactive_reminder_sent_at',
     ];
 
     public function gameLists(): HasMany
@@ -106,6 +110,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'is_admin' => 'boolean',
             'last_seen_at' => 'datetime',
             'inactive_reminder_sent_at' => 'datetime',
         ];

@@ -13,14 +13,14 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ asset('site.webmanifest') }}">
-    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260722-1" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260723-1" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {
             font-family: 'Material Symbols Outlined';
             font-style: normal;
             font-weight: 400;
             font-display: block;
-            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260722-1') format('woff2');
+            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260723-1') format('woff2');
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -83,6 +83,11 @@
                             <span class="material-symbols-outlined">person</span>
                         @endif
                     </a>
+                    @if (auth()->user()->is_admin)
+                        <a href="{{ route('admin.dashboard') }}" class="grid size-8 cursor-pointer place-items-center rounded-xl border border-violet-400/20 bg-violet-500/10 text-violet-300 transition hover:border-violet-300/40 hover:bg-violet-500/20 hover:text-white sm:size-10" title="Админка" aria-label="Открыть админку" data-admin-link>
+                            <span class="material-symbols-outlined">grid_view</span>
+                        </a>
+                    @endif
                     <a href="{{ route('settings.edit') }}" class="grid size-8 cursor-pointer place-items-center rounded-xl border border-white/10 bg-white/5 text-slate-400 transition hover:border-violet-400/30 hover:text-white sm:size-10" title="Настройки" aria-label="Настройки">
                         <span class="material-symbols-outlined">settings</span>
                     </a>
