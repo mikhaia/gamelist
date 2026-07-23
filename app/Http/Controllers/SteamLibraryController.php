@@ -6,13 +6,32 @@ use App\Exceptions\SteamLibraryException;
 use App\Services\SteamLibraryImporter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use Throwable;
 
 class SteamLibraryController extends Controller
 {
     public function __construct(private readonly SteamLibraryImporter $importer) {}
 
-    public function __invoke(Request $request): RedirectResponse
+    public function create(Request $request): View|RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user->steam_id) {
+            return redirect()->route('settings.edit')->withErrors([
+                'steam' => __('app.errors.steam_connection_required'),
+            ]);
+        }
+
+        $existing = $user->gameLists()->where('slug', 'steam')->first();
+        if ($existing) {
+            return redirect()->route('lists.show', $existing)
+                ->with('success', __('app.messages.steam_library_exists'));
+        }
+
+        return view('lists.steam-import');
+    }
+
+    public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
         if (! $user->steam_id) {
@@ -24,13 +43,13 @@ class SteamLibraryController extends Controller
         try {
             $result = $this->importer->import($user);
         } catch (SteamLibraryException $exception) {
-            return back()
+            return redirect()->route('lists.index')
                 ->withErrors(['steam_import' => $exception->getMessage()])
                 ->with('steam_privacy_url', $this->privacyUrl((string) $user->steam_id));
         } catch (Throwable $exception) {
             report($exception);
 
-            return back()
+            return redirect()->route('lists.index')
                 ->withErrors(['steam_import' => __('app.errors.steam_import_failed')])
                 ->with('steam_privacy_url', $this->privacyUrl((string) $user->steam_id));
         }

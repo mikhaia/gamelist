@@ -68,7 +68,8 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/friends/{friend}', [FriendController::class, 'destroy'])->name('friends.destroy');
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::delete('/notifications', [NotificationController::class, 'clear'])->name('notifications.clear');
-    Route::post('/lists/steam', SteamLibraryController::class)->middleware('throttle:3,1')->name('lists.steam.import');
+    Route::get('/lists/steam/import', [SteamLibraryController::class, 'create'])->name('lists.steam.create');
+    Route::post('/lists/steam/import', [SteamLibraryController::class, 'store'])->middleware('throttle:3,1')->name('lists.steam.import');
     Route::resource('lists', GameListController::class)->parameters(['lists' => 'gameList']);
     Route::patch('/lists/{gameList}/display', [GameListController::class, 'display'])->name('lists.display');
     Route::get('/lists/{gameList}/catalog', [CatalogBrowserController::class, 'index'])->name('catalog.index');

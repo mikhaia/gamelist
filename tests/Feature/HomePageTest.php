@@ -27,6 +27,13 @@ class HomePageTest extends TestCase
             'normalized_title' => 'game without cover',
         ]);
 
+        CatalogGame::create([
+            'hltb_id' => 3001,
+            'title' => 'Game With Unreliable Steam Cover',
+            'normalized_title' => 'game with unreliable steam cover',
+            'cover_url' => 'https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/620/library_600x900.jpg',
+        ]);
+
         $page = $this->get(route('home'));
 
         $page->assertOk()
@@ -43,7 +50,9 @@ class HomePageTest extends TestCase
             ->assertSee('href="'.route('games.show', 3).'"', false)
             ->assertSee('aria-label="Открыть страницу игры Featured Game 1"', false)
             ->assertSeeInOrder(['Хочу сыграть', 'Играю', 'Пройдена'])
-            ->assertDontSee('Game Without Cover');
+            ->assertDontSee('Game Without Cover')
+            ->assertDontSee('Game With Unreliable Steam Cover')
+            ->assertDontSee('shared.fastly.steamstatic.com', false);
 
         $this->assertSame(3, substr_count($page->getContent(), 'data-featured-game'));
     }

@@ -44,12 +44,27 @@ class SteamLibraryImportTest extends TestCase
             ->assertSee(asset('images/steam/list-cover.webp'))
             ->assertSee('opacity-75', false)
             ->assertSeeInOrder(['Ранее созданный список', 'data-steam-library-import'], false)
-            ->assertSee('action="'.route('lists.steam.import').'"', false);
+            ->assertSee('href="'.route('lists.steam.create').'"', false);
 
         $unlinkedUser = User::factory()->create();
         $this->actingAs($unlinkedUser)->get(route('lists.index'))
             ->assertOk()
             ->assertDontSee('data-steam-library-import', false);
+    }
+
+    public function test_steam_import_has_a_dedicated_loading_screen(): void
+    {
+        $user = User::factory()->create(['steam_id' => self::STEAM_ID]);
+
+        $this->actingAs($user)->get(route('lists.steam.create'))
+            ->assertOk()
+            ->assertSee('data-steam-import-screen', false)
+            ->assertSee('data-steam-import-form', false)
+            ->assertSee('action="'.route('lists.steam.import').'"', false)
+            ->assertSee('role="progressbar"', false)
+            ->assertSee('animate-spin', false)
+            ->assertSee('requestSubmit()', false)
+            ->assertSee('Создаём список игр');
     }
 
     public function test_linked_user_can_create_private_list_from_steam_library(): void
@@ -188,6 +203,9 @@ class SteamLibraryImportTest extends TestCase
             ->assertSessionHasErrors('steam_import');
 
         $unlinkedUser = User::factory()->create();
+        $this->actingAs($unlinkedUser)->get(route('lists.steam.create'))
+            ->assertRedirect(route('settings.edit'))
+            ->assertSessionHasErrors('steam');
         $this->actingAs($unlinkedUser)->post(route('lists.steam.import'))
             ->assertRedirect(route('settings.edit'))
             ->assertSessionHasErrors('steam');

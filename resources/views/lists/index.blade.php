@@ -61,9 +61,8 @@
             </a>
         @endforeach
         @if ($canImportSteam)
-            <form method="POST" action="{{ route('lists.steam.import') }}" class="min-w-0">
-                @csrf
-                <button type="submit" class="glass group relative flex h-full min-h-64 w-full cursor-pointer flex-col overflow-hidden rounded-3xl p-5 text-left opacity-75 transition duration-300 hover:-translate-y-1 hover:border-[#66c0f4]/35 hover:bg-white/[.075] hover:opacity-100" aria-label="Создать список игр из Steam" data-steam-library-import>
+            <div class="min-w-0">
+                <a href="{{ route('lists.steam.create') }}" class="glass group relative flex h-full min-h-64 w-full cursor-pointer flex-col overflow-hidden rounded-3xl p-5 text-left opacity-75 transition duration-300 hover:-translate-y-1 hover:border-[#66c0f4]/35 hover:bg-white/[.075] hover:opacity-100" aria-label="Создать список игр из Steam" data-steam-library-import>
                     <img src="{{ asset('images/steam/list-cover.webp') }}" alt="" class="absolute inset-0 h-full w-full object-cover opacity-45 transition duration-500 group-hover:scale-105 group-hover:opacity-60">
                     <div class="absolute inset-0 bg-gradient-to-t from-[#090b16]/95 via-[#111827]/65 to-[#1b2838]/25"></div>
                     <div class="relative flex w-full items-start justify-between gap-4">
@@ -78,8 +77,8 @@
                         <span>Steam</span>
                         <span class="flex items-center gap-1 text-[#66c0f4]">Создать <span class="material-symbols-outlined text-sm transition group-hover:translate-x-1">arrow_forward</span></span>
                     </div>
-                </button>
-            </form>
+                </a>
+            </div>
         @endif
     </div>
 @endif

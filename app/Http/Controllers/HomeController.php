@@ -12,6 +12,7 @@ class HomeController extends Controller
         $featuredGames = CatalogGame::query()
             ->whereNotNull('cover_url')
             ->where('cover_url', '!=', '')
+            ->where('cover_url', 'not like', '%shared.fastly.steamstatic.com%')
             ->inRandomOrder()
             ->limit(3)
             ->get();
