@@ -30,6 +30,8 @@ return [
     ],
 
     'steam' => [
+        'key' => env('STEAM_WEB_API_KEY'),
+        'api_url' => env('STEAM_API_URL', 'https://api.steampowered.com'),
         'openid_url' => env('STEAM_OPENID_URL', 'https://steamcommunity.com/openid/login'),
         'realm' => env('STEAM_REALM'),
         'return_url' => env('STEAM_RETURN_URL'),

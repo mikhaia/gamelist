@@ -102,7 +102,7 @@ class Game extends Model
 
     public function getCoverUrlAttribute(): ?string
     {
-        return $this->cover_path ? Storage::disk('public')->url($this->cover_path) : null;
+        return $this->cover_path ? Storage::disk('public')->url($this->cover_path) : $this->source_cover_url;
     }
 
     public function formattedTime(?int $minutes): ?string
