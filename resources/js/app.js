@@ -326,7 +326,77 @@ function syncCatalogBrowserFormFilters(form) {
     browser.dataset.platformName = platform?.value ? platform.selectedOptions[0].textContent.trim() : '';
 }
 
+const confirmDialog = document.querySelector('[data-confirm-dialog]');
+let pendingConfirmButton = null;
+let confirmedButton = null;
+
+function closeConfirmDialog(restoreFocus = true) {
+    if (!confirmDialog?.open) return;
+
+    const button = pendingConfirmButton;
+    pendingConfirmButton = null;
+    confirmDialog.close();
+
+    if (restoreFocus) window.requestAnimationFrame(() => button?.focus());
+}
+
+function openConfirmDialog(button) {
+    if (!confirmDialog || typeof confirmDialog.showModal !== 'function') return false;
+
+    pendingConfirmButton = button;
+    confirmDialog.querySelector('[data-confirm-title]').textContent = button.dataset.confirmTitle || 'Подтвердите удаление';
+    confirmDialog.querySelector('[data-confirm-message]').textContent = button.dataset.confirm;
+    confirmDialog.querySelector('[data-confirm-accept-label]').textContent = button.dataset.confirmLabel || 'Удалить';
+    confirmDialog.showModal();
+    confirmDialog.querySelector('[data-confirm-cancel]')?.focus();
+
+    return true;
+}
+
+confirmDialog?.addEventListener('cancel', () => {
+    const button = pendingConfirmButton;
+    pendingConfirmButton = null;
+    window.requestAnimationFrame(() => button?.focus());
+});
+
+confirmDialog?.addEventListener('click', (event) => {
+    if (event.target === confirmDialog) closeConfirmDialog();
+});
+
 document.addEventListener('click', async (event) => {
+    const confirmCancel = event.target.closest('[data-confirm-cancel]');
+    if (confirmCancel) {
+        closeConfirmDialog();
+        return;
+    }
+
+    const confirmAccept = event.target.closest('[data-confirm-accept]');
+    if (confirmAccept) {
+        const button = pendingConfirmButton;
+        closeConfirmDialog(false);
+        if (!button) return;
+
+        if (button.form && button.type === 'submit') {
+            button.form.requestSubmit(button);
+        } else {
+            confirmedButton = button;
+            button.click();
+            confirmedButton = null;
+        }
+        return;
+    }
+
+    const confirmButton = event.target.closest('[data-confirm]');
+    if (confirmButton && confirmButton !== confirmedButton) {
+        if (openConfirmDialog(confirmButton)) {
+            event.preventDefault();
+            return;
+        }
+
+        if (!window.confirm(confirmButton.dataset.confirm)) event.preventDefault();
+        return;
+    }
+
     const duplicateAllow = event.target.closest('[data-game-duplicate-dialog][data-ajax] [data-game-duplicate-allow]');
     if (duplicateAllow) {
         const dialog = duplicateAllow.closest('[data-game-duplicate-dialog]');
@@ -528,10 +598,6 @@ document.addEventListener('click', async (event) => {
         if (label) window.setTimeout(() => { label.textContent = initial; }, 1600);
     }
 
-    const confirmButton = event.target.closest('[data-confirm]');
-    if (confirmButton && !window.confirm(confirmButton.dataset.confirm)) {
-        event.preventDefault();
-    }
 });
 
 function updateNotificationCenter(center, count) {

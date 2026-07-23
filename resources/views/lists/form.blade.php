@@ -90,7 +90,7 @@
             </label>
             <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
                 @if ($editing)
-                    <button type="submit" form="delete-list" class="button button-danger" data-confirm="Удалить список вместе со всеми играми? Это действие нельзя отменить."><span class="material-symbols-outlined">delete</span> Удалить список</button>
+                    <button type="submit" form="delete-list" class="button button-danger" data-confirm="Удалить список вместе со всеми играми? Это действие нельзя отменить." data-confirm-title="Удалить список?" data-confirm-label="Удалить список"><span class="material-symbols-outlined">delete</span> Удалить список</button>
                 @else<span></span>@endif
                 <div class="flex flex-col-reverse gap-3 sm:flex-row">
                     <a class="button button-secondary" href="{{ $editing ? route('lists.show', $gameList) : route('lists.index') }}">{{ __('app.actions.cancel') }}</a>

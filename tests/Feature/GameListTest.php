@@ -202,7 +202,11 @@ class GameListTest extends TestCase
             ->assertSee('form="delete-list"', false)
             ->assertSee('action="'.route('lists.destroy', $list).'"', false)
             ->assertSee('Удалить список')
-            ->assertSee('data-confirm=', false);
+            ->assertSee('data-confirm=', false)
+            ->assertSee('data-confirm-title="Удалить список?"', false)
+            ->assertSee('data-confirm-label="Удалить список"', false)
+            ->assertSee('data-confirm-dialog', false)
+            ->assertSee('bg-white/90', false);
 
         $this->actingAs($other)->delete(route('lists.destroy', $list))->assertForbidden();
         $this->assertDatabaseHas('game_lists', ['id' => $list->id]);

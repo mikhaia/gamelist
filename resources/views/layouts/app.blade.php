@@ -167,6 +167,8 @@
 
     @stack('modals')
 
+    <x-confirm-dialog />
+
     <footer class="relative z-10 mx-auto max-w-7xl px-4 py-10 text-center text-xs leading-6 text-slate-600">
         <p>GameList · {{ date('Y') }} · {{ __('app.tagline') }}</p>
         <p>
