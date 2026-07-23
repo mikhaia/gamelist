@@ -44,6 +44,8 @@ class GameListController extends Controller
         $validated['is_public'] = $request->boolean('is_public');
         if ($request->hasFile('cover')) {
             $validated['cover_path'] = $this->covers->storeListCover($request->file('cover'));
+        } elseif ($request->filled('cover_url')) {
+            $validated['cover_path'] = $this->covers->storeListUrl($request->string('cover_url')->toString());
         }
         $gameList = $request->user()->gameLists()->create($validated);
 
@@ -91,6 +93,8 @@ class GameListController extends Controller
         $validated['is_public'] = $request->boolean('is_public');
         if ($request->hasFile('cover')) {
             $validated['cover_path'] = $this->covers->storeListCover($request->file('cover'), $gameList->cover_path);
+        } elseif ($request->filled('cover_url')) {
+            $validated['cover_path'] = $this->covers->storeListUrl($request->string('cover_url')->toString(), $gameList->cover_path);
         }
         $gameList->update($validated);
 
@@ -128,6 +132,7 @@ class GameListController extends Controller
             ],
             'description' => ['nullable', 'string', 'max:2000'],
             'cover' => ['nullable', 'image', 'max:8192'],
+            'cover_url' => ['nullable', 'url:http,https', 'max:2048'],
             'default_platform' => ['required', Rule::enum(Platform::class)],
             'available_statuses' => ['required', 'array', 'min:1', 'max:'.count(GameStatus::cases())],
             'available_statuses.*' => ['required', 'distinct', Rule::enum(GameStatus::class)],

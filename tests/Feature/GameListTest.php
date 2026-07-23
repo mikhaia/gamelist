@@ -7,6 +7,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -251,5 +252,40 @@ class GameListTest extends TestCase
             ->assertSee('mb-3 flex flex-wrap items-center gap-2', false)
             ->assertDontSee('mb-3 flex flex-wrap items-center justify-center gap-2', false)
             ->assertSee('bg-gradient-to-r from-[#080a14]/90 via-[#080a14]/55 to-[#080a14]/15', false);
+    }
+
+    public function test_list_cover_can_be_downloaded_from_url_and_replaces_previous_image(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create(['login' => 'remote_cover_player']);
+        $list = $user->gameLists()->create([
+            'name' => 'Games', 'slug' => 'games', 'default_platform' => 'pc',
+            'cover_path' => 'list-covers/old.webp',
+        ]);
+        Storage::disk('public')->put($list->cover_path, 'old');
+
+        $remoteImage = UploadedFile::fake()->image('remote-cover.jpg', 2400, 1600);
+        Http::fake([
+            'https://example.com/remote-cover.jpg' => Http::response(
+                $remoteImage->getContent(),
+                200,
+                ['Content-Type' => 'image/jpeg'],
+            ),
+        ]);
+
+        $this->actingAs($user)->put(route('lists.update', $list), [
+            'name' => 'Games',
+            'slug' => 'games',
+            'default_platform' => 'pc',
+            'available_statuses' => ['want_to_play', 'playing', 'completed', 'dropped'],
+            'cover_url' => 'https://example.com/remote-cover.jpg',
+        ])->assertRedirect(route('lists.show', $list));
+
+        $list->refresh();
+        $this->assertStringStartsWith('list-covers/', $list->cover_path);
+        $this->assertStringEndsWith('.webp', $list->cover_path);
+        Storage::disk('public')->assertMissing('list-covers/old.webp');
+        Storage::disk('public')->assertExists($list->cover_path);
+        Http::assertSent(fn ($request): bool => $request->url() === 'https://example.com/remote-cover.jpg');
     }
 }

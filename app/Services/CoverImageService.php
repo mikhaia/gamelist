@@ -47,6 +47,21 @@ class CoverImageService
 
     public function storeUrl(string $url, ?string $oldPath = null): string
     {
+        return $this->storeRemoteUrl($url, $oldPath, 'game-covers', 900, 1200);
+    }
+
+    public function storeListUrl(string $url, ?string $oldPath = null): string
+    {
+        return $this->storeRemoteUrl($url, $oldPath, 'list-covers', 1800, 1200);
+    }
+
+    private function storeRemoteUrl(
+        string $url,
+        ?string $oldPath,
+        string $directory,
+        int $maxWidth,
+        int $maxHeight,
+    ): string {
         $response = null;
 
         for ($redirects = 0; $redirects < 4; $redirects++) {
@@ -78,7 +93,7 @@ class CoverImageService
             throw ValidationException::withMessages(['cover_url' => __('app.errors.cover_not_image')]);
         }
 
-        return $this->storeBytes($response->body(), $oldPath, 'game-covers', 900, 1200, 'cover_url');
+        return $this->storeBytes($response->body(), $oldPath, $directory, $maxWidth, $maxHeight, 'cover_url');
     }
 
     private function storeUpload(

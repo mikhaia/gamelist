@@ -45,12 +45,22 @@
                         @endif
                     </div>
                     <div class="min-w-0 flex-1">
-                        <label class="label" for="cover">Обложка списка</label>
-                        <p class="mt-1 text-xs leading-5 text-slate-600">Она станет затемнённым фоном карточки и страницы списка.</p>
+                        <p class="text-sm font-bold text-slate-200">Обложка списка</p>
+                        <p class="mt-1 text-xs leading-5 text-slate-600">Она станет затемнённым фоном карточки и страницы списка. Загруженный файл имеет приоритет над URL.</p>
                     </div>
                 </div>
-                <input class="field mt-4 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-500/15 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-violet-300" id="cover" name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
-                @error('cover') <p class="field-error">{{ $message }}</p> @enderror
+                <div class="mt-4 space-y-4">
+                    <div>
+                        <label class="label" for="cover_url">URL изображения</label>
+                        <input class="field" id="cover_url" name="cover_url" value="{{ old('cover_url') }}" type="url" placeholder="https://example.com/cover.jpg">
+                        @error('cover_url') <p class="field-error">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="label" for="cover">Или загрузить файл</label>
+                        <input class="field file:mr-3 file:rounded-lg file:border-0 file:bg-violet-500/15 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-violet-300" id="cover" name="cover" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                        @error('cover') <p class="field-error">{{ $message }}</p> @enderror
+                    </div>
+                </div>
             </div>
             <div>
                 <label class="label" for="default_platform">Платформа по умолчанию</label>
