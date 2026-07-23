@@ -3,6 +3,7 @@
 use App\Http\Controllers\AchievementController;
 use App\Http\Controllers\Admin\CatalogGameController as AdminCatalogGameController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ErrorLogController as AdminErrorLogController;
 use App\Http\Controllers\Admin\FileController as AdminFileController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -115,6 +116,7 @@ Route::prefix('admin')
         Route::get('/', AdminDashboardController::class)->name('dashboard');
         Route::get('/users', AdminUserController::class)->name('users.index');
         Route::get('/games', AdminCatalogGameController::class)->name('games.index');
+        Route::get('/errors', AdminErrorLogController::class)->name('errors.index');
         Route::get('/files/{type?}', [AdminFileController::class, 'index'])
             ->where('type', 'screenshots|avatars|list-covers|game-covers')
             ->name('files.index');

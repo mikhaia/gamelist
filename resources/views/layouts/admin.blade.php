@@ -7,14 +7,14 @@
     <meta name="theme-color" content="#eef2ff">
     <title>@yield('title', 'Статистика') · GameList Admin</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260723-1" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260723-2" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {
             font-family: 'Material Symbols Outlined';
             font-style: normal;
             font-weight: 400;
             font-display: block;
-            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260723-1') format('woff2');
+            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260723-2') format('woff2');
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +42,7 @@
                     </a>
                 </div>
 
-                <nav class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:mt-7 lg:grid-cols-1" aria-label="Разделы админки">
+                <nav class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:mt-7 lg:grid-cols-1" aria-label="Разделы админки">
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-bold transition {{ request()->routeIs('admin.dashboard') ? 'border-violet-400/25 bg-violet-500/15 text-white shadow-lg shadow-violet-950/20' : 'border-transparent text-slate-400 hover:border-white/8 hover:bg-white/5 hover:text-white' }}">
                         <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-white/6"><span class="material-symbols-outlined">grid_view</span></span>
                         <span>Статистика</span>
@@ -58,6 +58,10 @@
                     <a href="{{ route('admin.games.index') }}" class="flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-bold transition {{ request()->routeIs('admin.games.*') ? 'border-violet-400/25 bg-violet-500/15 text-white shadow-lg shadow-violet-950/20' : 'border-transparent text-slate-400 hover:border-white/8 hover:bg-white/5 hover:text-white' }}">
                         <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-white/6"><span class="material-symbols-outlined">sports_esports</span></span>
                         <span>Игры</span>
+                    </a>
+                    <a href="{{ route('admin.errors.index') }}" class="flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm font-bold transition {{ request()->routeIs('admin.errors.*') ? 'border-violet-400/25 bg-violet-500/15 text-white shadow-lg shadow-violet-950/20' : 'border-transparent text-slate-400 hover:border-white/8 hover:bg-white/5 hover:text-white' }}">
+                        <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-white/6"><span class="material-symbols-outlined">bug_report</span></span>
+                        <span>Ошибки</span>
                     </a>
                 </nav>
 

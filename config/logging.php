@@ -36,6 +36,13 @@ return [
         'trace' => env('LOG_DEPRECATIONS_TRACE', false),
     ],
 
+    'admin_viewer' => [
+        'path' => env('ADMIN_LOG_PATH', storage_path('logs')),
+        'max_files' => (int) env('ADMIN_LOG_MAX_FILES', 14),
+        'max_bytes_per_file' => (int) env('ADMIN_LOG_MAX_BYTES_PER_FILE', 4194304),
+        'max_entries' => (int) env('ADMIN_LOG_MAX_ENTRIES', 2000),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Log Channels
