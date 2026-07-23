@@ -56,16 +56,20 @@
             </form>
         </section>
 
-        <section class="panel md:col-span-2">
-            <h2 class="text-lg font-extrabold">Сменить пароль</h2>
-            <p class="mt-1 text-xs leading-5 text-slate-500">Для подтверждения понадобится текущий пароль.</p>
+        <section class="panel">
+            <h2 class="text-lg font-extrabold">{{ auth()->user()->hasLocalPassword() ? 'Сменить пароль' : 'Создать пароль' }}</h2>
+            <p class="mt-1 text-xs leading-5 text-slate-500">
+                {{ auth()->user()->hasLocalPassword() ? 'Для подтверждения понадобится текущий пароль.' : 'Пароль позволит входить без Steam и безопасно отключить привязку.' }}
+            </p>
             <form method="POST" action="{{ route('settings.password') }}" class="mt-5 space-y-4">
                 @csrf @method('PATCH')
-                <div>
-                    <label class="label" for="current_password">Текущий пароль</label>
-                    <input class="field" id="current_password" name="current_password" type="password" autocomplete="current-password" required>
-                    @error('current_password') <p class="field-error">{{ $message }}</p> @enderror
-                </div>
+                @if (auth()->user()->hasLocalPassword())
+                    <div>
+                        <label class="label" for="current_password">Текущий пароль</label>
+                        <input class="field" id="current_password" name="current_password" type="password" autocomplete="current-password" required>
+                        @error('current_password') <p class="field-error">{{ $message }}</p> @enderror
+                    </div>
+                @endif
                 <div>
                     <label class="label" for="password">Новый пароль</label>
                     <input class="field" id="password" name="password" type="password" autocomplete="new-password" required>
@@ -75,8 +79,50 @@
                     <label class="label" for="password_confirmation">Повторите пароль</label>
                     <input class="field" id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required>
                 </div>
-                <button class="button button-primary w-full"><span class="material-symbols-outlined">password</span> Сохранить пароль</button>
+                <button class="button button-primary w-full"><span class="material-symbols-outlined">password</span> {{ auth()->user()->hasLocalPassword() ? 'Сохранить пароль' : 'Создать пароль' }}</button>
             </form>
+        </section>
+
+        <section class="panel relative overflow-hidden">
+            <div class="pointer-events-none absolute -top-20 -right-16 size-48 rounded-full bg-[#66c0f4]/10 blur-3xl"></div>
+            <div class="relative flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-extrabold">Steam</h2>
+                    <p class="mt-1 text-xs leading-5 text-slate-500">Используйте Steam для быстрого и безопасного входа в GameList.</p>
+                </div>
+                <span class="grid size-11 shrink-0 place-items-center rounded-2xl border border-[#66c0f4]/20 bg-[#1b2838] text-[#66c0f4] shadow-lg shadow-black/20"><span class="material-symbols-outlined">sports_esports</span></span>
+            </div>
+
+            @error('steam')
+                <p class="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2.5 text-xs leading-5 text-red-200">{{ $message }}</p>
+            @enderror
+
+            @if (auth()->user()->steam_id)
+                <div class="relative mt-5 rounded-2xl border border-[#66c0f4]/15 bg-[#171a21]/75 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="inline-flex items-center gap-2 text-xs font-extrabold text-emerald-300"><span class="size-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.7)]"></span>Подключён</span>
+                        <a href="{{ auth()->user()->steam_profile_url }}" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-[#66c0f4] transition hover:text-white">Профиль Steam ↗</a>
+                    </div>
+                    <p class="mt-3 font-mono text-xs text-slate-400">Steam ID: {{ auth()->user()->steam_id }}</p>
+                    @if (auth()->user()->steam_connected_at)
+                        <p class="mt-1 text-[10px] font-semibold text-slate-600">Подключён {{ auth()->user()->steam_connected_at->format('d.m.Y') }}</p>
+                    @endif
+                </div>
+
+                @if (auth()->user()->hasLocalPassword())
+                    <form method="POST" action="{{ route('settings.steam.destroy') }}" class="relative mt-4">
+                        @csrf @method('DELETE')
+                        <button class="button button-secondary w-full cursor-pointer" data-confirm="После отключения вход через этот аккаунт Steam станет недоступен." data-confirm-title="Отключить Steam?" data-confirm-label="Отключить Steam"><span class="material-symbols-outlined">link</span> Отключить Steam</button>
+                    </form>
+                @else
+                    <p class="relative mt-4 rounded-xl border border-amber-400/15 bg-amber-500/8 px-3 py-2.5 text-xs leading-5 text-amber-200">Чтобы отключить Steam и не потерять доступ, сначала создайте пароль в соседнем блоке.</p>
+                @endif
+            @else
+                <div class="relative mt-5 rounded-2xl border border-white/8 bg-[#171a21]/75 p-4 text-center">
+                    <p class="mb-4 text-xs leading-5 text-slate-400">После привязки вы сможете входить одним нажатием без ввода пароля.</p>
+                    <x-steam-button href="{{ route('steam.redirect') }}" label="Подключить" aria-label="Привязать аккаунт Steam" data-steam-link />
+                </div>
+            @endif
         </section>
     </div>
 </div>

@@ -77,8 +77,9 @@ class SettingsController extends Controller
 
     public function password(Request $request): RedirectResponse
     {
+        $hasPassword = $request->user()->hasLocalPassword();
         $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
+            'current_password' => $hasPassword ? ['required', 'current_password'] : ['nullable', 'prohibited'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,8 +26,9 @@ class AuthenticatedSessionController extends Controller
 
         $identifier = strtolower(trim($credentials['login']));
         $identifierField = str_contains($identifier, '@') ? 'email' : 'login';
+        $user = User::query()->where($identifierField, $identifier)->first();
 
-        if (! Auth::attempt([
+        if (! $user?->hasLocalPassword() || ! Auth::attempt([
             $identifierField => $identifier,
             'password' => $credentials['password'],
         ], $request->boolean('remember'))) {

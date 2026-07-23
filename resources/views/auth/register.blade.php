@@ -9,7 +9,15 @@
         <h1 class="text-2xl font-extrabold">Создать аккаунт</h1>
         <p class="muted mt-2">Логин станет частью публичных ссылок, а email можно использовать для входа.</p>
 
-        <form method="POST" action="{{ route('register') }}" class="mt-7 space-y-5">
+        <x-steam-button href="{{ route('steam.redirect') }}" class="mt-7" label="Регистрация через" aria-label="Зарегистрироваться через Steam" data-steam-register />
+
+        <div class="my-6 flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-[.18em] text-slate-600">
+            <span class="h-px flex-1 bg-white/10"></span>
+            или заполните форму
+            <span class="h-px flex-1 bg-white/10"></span>
+        </div>
+
+        <form method="POST" action="{{ route('register') }}" class="space-y-5">
             @csrf
             <div>
                 <label class="label" for="login">Логин</label>

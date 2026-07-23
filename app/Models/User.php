@@ -22,7 +22,7 @@ class User extends Authenticatable
     ];
 
     protected $fillable = [
-        'login', 'email', 'password', 'is_admin', 'avatar_path', 'profile_cover_path', 'last_seen_at', 'inactive_reminder_sent_at',
+        'login', 'email', 'password', 'is_admin', 'steam_id', 'steam_connected_at', 'avatar_path', 'profile_cover_path', 'last_seen_at', 'inactive_reminder_sent_at',
     ];
 
     public function gameLists(): HasMany
@@ -68,6 +68,16 @@ class User extends Authenticatable
         return $this->profile_cover_path ? Storage::disk('public')->url($this->profile_cover_path) : null;
     }
 
+    public function getSteamProfileUrlAttribute(): ?string
+    {
+        return $this->steam_id ? 'https://steamcommunity.com/profiles/'.$this->steam_id : null;
+    }
+
+    public function hasLocalPassword(): bool
+    {
+        return filled($this->getAuthPassword());
+    }
+
     public function isFriendsWith(User $user): bool
     {
         return $this->friends()->whereKey($user->getKey())->exists();
@@ -111,6 +121,7 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'steam_connected_at' => 'datetime',
             'last_seen_at' => 'datetime',
             'inactive_reminder_sent_at' => 'datetime',
         ];

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\OtpPasswordResetController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\SteamAuthController;
 use App\Http\Controllers\CatalogBrowserController;
 use App\Http\Controllers\CatalogQuickAddController;
 use App\Http\Controllers\CatalogSearchController;
@@ -43,6 +44,8 @@ Route::get('/catalog/search/cached', [CatalogSearchController::class, 'cached'])
 Route::get('/catalog/search', [CatalogSearchController::class, 'fresh'])->middleware('throttle:30,1')->name('catalog.search');
 Route::get('/catalog/search/rawg', RawgCatalogSearchController::class)->middleware('throttle:30,1')->name('catalog.rawg-search');
 Route::get('/achievements/{user:login}', [AchievementController::class, 'show'])->name('achievements.show');
+Route::get('/auth/steam', [SteamAuthController::class, 'redirect'])->middleware('throttle:20,1')->name('steam.redirect');
+Route::get('/auth/steam/callback', [SteamAuthController::class, 'callback'])->middleware('throttle:20,1')->name('steam.callback');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
@@ -98,6 +101,7 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/settings/email', [SettingsController::class, 'email'])->name('settings.email');
     Route::patch('/settings/profile-cover', [SettingsController::class, 'profileCover'])->name('settings.profile-cover');
     Route::patch('/settings/password', [SettingsController::class, 'password'])->name('settings.password');
+    Route::delete('/settings/steam', [SteamAuthController::class, 'destroy'])->name('settings.steam.destroy');
     Route::patch('/profile/favorites', [ProfileFavoriteController::class, 'update'])->name('profile.favorites.update');
 });
 

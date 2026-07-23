@@ -9,7 +9,16 @@
         <h1 class="text-2xl font-extrabold">С возвращением</h1>
         <p class="muted mt-2">Войдите, чтобы продолжить свою игровую историю.</p>
 
-        <form method="POST" action="{{ route('login') }}" class="mt-7 space-y-5">
+        <x-steam-button href="{{ route('steam.redirect') }}" class="mt-7" aria-label="Войти через Steam" data-steam-login />
+        @error('steam') <p class="field-error mt-3">{{ $message }}</p> @enderror
+
+        <div class="my-6 flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-[.18em] text-slate-600">
+            <span class="h-px flex-1 bg-white/10"></span>
+            или с паролем
+            <span class="h-px flex-1 bg-white/10"></span>
+        </div>
+
+        <form method="POST" action="{{ route('login') }}" class="space-y-5">
             @csrf
             <div>
                 <label class="label" for="login">Логин или email</label>

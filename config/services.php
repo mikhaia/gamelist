@@ -29,6 +29,12 @@ return [
         'search_ttl_hours' => (int) env('RAWG_SEARCH_TTL_HOURS', 6),
     ],
 
+    'steam' => [
+        'openid_url' => env('STEAM_OPENID_URL', 'https://steamcommunity.com/openid/login'),
+        'realm' => env('STEAM_REALM'),
+        'return_url' => env('STEAM_RETURN_URL'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
