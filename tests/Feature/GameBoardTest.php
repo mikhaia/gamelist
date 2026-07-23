@@ -2,15 +2,101 @@
 
 namespace Tests\Feature;
 
+use App\Enums\GameStatus;
 use App\Models\CatalogGame;
 use App\Models\GameList;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class GameBoardTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_new_lists_default_to_core_statuses_and_show_extended_statuses_as_optional(): void
+    {
+        $user = User::factory()->create();
+
+        $this->assertSame(
+            ['want_to_play', 'playing', 'completed', 'dropped'],
+            (new GameList)->availableStatusValues(),
+        );
+
+        $legacyList = $user->gameLists()->create([
+            'name' => 'Legacy',
+            'slug' => 'legacy',
+            'default_platform' => 'pc',
+        ]);
+        $this->assertSame(
+            ['want_to_play', 'installed', 'playing', 'completed', 'dropped'],
+            $legacyList->availableStatusValues(),
+        );
+
+        $page = $this->actingAs($user)->get(route('lists.create'));
+        $page->assertOk()
+            ->assertSee('Хочу перепройти')
+            ->assertSee('Перепрохожу')
+            ->assertSee('Пройдена на 100%');
+
+        preg_match_all(
+            '/<input\s+type="checkbox"\s+name="available_statuses\[\]"\s+value="([^"]+)"[^>]*>/s',
+            $page->getContent(),
+            $statusInputs,
+        );
+        $checkedStatuses = collect($statusInputs[0])
+            ->mapWithKeys(fn (string $input, int $index): array => [
+                $statusInputs[1][$index] => str_contains($input, 'checked'),
+            ])
+            ->filter()
+            ->keys()
+            ->all();
+        $this->assertSame(['want_to_play', 'playing', 'completed', 'dropped'], $checkedStatuses);
+    }
+
+    public function test_extended_statuses_can_be_enabled_and_receive_automatic_dates(): void
+    {
+        $this->travelTo(Carbon::parse('2026-07-23 12:00:00'));
+        $user = User::factory()->create(['login' => 'replayer']);
+        $statusValues = array_column(GameStatus::cases(), 'value');
+
+        $this->actingAs($user)->post(route('lists.store'), [
+            'name' => 'Replay Games',
+            'slug' => 'replay-games',
+            'default_platform' => 'pc',
+            'available_statuses' => $statusValues,
+        ])->assertRedirect();
+
+        $gameList = GameList::query()->where('slug', 'replay-games')->firstOrFail();
+        $this->assertSame($statusValues, $gameList->available_statuses);
+
+        $game = $gameList->games()->create([
+            'title' => 'Control',
+            'normalized_title' => 'control',
+            'status' => GameStatus::WantToReplay,
+            'platform' => 'pc',
+        ]);
+
+        $this->actingAs($user)
+            ->patchJson(route('games.status', $game), ['status' => GameStatus::Replaying->value])
+            ->assertOk()
+            ->assertJsonPath('label', 'Перепрохожу')
+            ->assertJsonPath('started_at', '2026-07-23');
+
+        $this->travelTo(Carbon::parse('2026-07-30 12:00:00'));
+        $this->actingAs($user)
+            ->patchJson(route('games.status', $game), ['status' => GameStatus::Completed100->value])
+            ->assertOk()
+            ->assertJsonPath('label', 'Пройдена на 100%')
+            ->assertJsonPath('completed_at', '2026-07-30');
+
+        $this->actingAs($user)->get(route('games.view', $game))
+            ->assertOk()
+            ->assertSee('data-game-status-event="replaying"', false)
+            ->assertSee('data-game-status-event="completed_100"', false)
+            ->assertSee('Начал перепрохождение')
+            ->assertSee('Пройдена на 100%');
+    }
 
     public function test_list_can_use_selected_statuses_as_board_columns(): void
     {

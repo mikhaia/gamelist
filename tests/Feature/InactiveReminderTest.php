@@ -31,13 +31,21 @@ class InactiveReminderTest extends TestCase
             'status' => 'playing',
             'platform' => 'pc',
         ]);
+        $list->games()->create([
+            'title' => 'Alan Wake 2',
+            'normalized_title' => 'alan wake 2',
+            'status' => 'replaying',
+            'platform' => 'pc',
+        ]);
 
         $this->artisan('gamelist:send-inactive-reminders')->assertSuccessful();
 
         Mail::assertSent(InactivePlayerMail::class, function (InactivePlayerMail $mail) use ($user): bool {
             return $mail->recipient->is($user)
                 && $mail->playingGames->pluck('title')->contains('Control')
-                && str_contains($mail->render(), 'Control');
+                && $mail->playingGames->pluck('title')->contains('Alan Wake 2')
+                && str_contains($mail->render(), 'Control')
+                && str_contains($mail->render(), 'Alan Wake 2');
         });
         $this->assertNotNull($user->fresh()->inactive_reminder_sent_at);
 

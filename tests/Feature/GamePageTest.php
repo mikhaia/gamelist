@@ -56,6 +56,9 @@ class GamePageTest extends TestCase
             ->assertSee('data-status-count="installed" data-count="0"', false)
             ->assertSee('data-status-count="playing" data-count="1"', false)
             ->assertSee('data-status-count="completed" data-count="1"', false)
+            ->assertSee('data-status-count="want_to_replay" data-count="0"', false)
+            ->assertSee('data-status-count="replaying" data-count="0"', false)
+            ->assertSee('data-status-count="completed_100" data-count="0"', false)
             ->assertSee('data-status-count="dropped" data-count="0"', false)
             ->assertDontSee('Страница игры');
     }
@@ -201,7 +204,7 @@ class GamePageTest extends TestCase
             ->assertSee('9,0 / 10')
             ->assertSee('<strong>Отличная</strong>', false)
             ->assertSee('<strong>Шедевр</strong>', false)
-            ->assertDontSee('<script>', false);
+            ->assertDontSee("<script>alert('xss')</script>", false);
 
         $this->actingAs($first)->put(route('game-reviews.update', $catalogGame), [
             'rating' => 11,

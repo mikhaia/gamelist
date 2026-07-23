@@ -61,7 +61,7 @@ class GameList extends Model
         $configured = $this->available_statuses;
 
         if (! is_array($configured) || $configured === []) {
-            return GameStatus::cases();
+            return $this->exists ? GameStatus::legacyCases() : GameStatus::defaultCases();
         }
 
         $statuses = array_values(array_filter(
@@ -69,7 +69,9 @@ class GameList extends Model
             fn (GameStatus $status): bool => in_array($status->value, $configured, true),
         ));
 
-        return $statuses === [] ? GameStatus::cases() : $statuses;
+        return $statuses === []
+            ? ($this->exists ? GameStatus::legacyCases() : GameStatus::defaultCases())
+            : $statuses;
     }
 
     /** @return array<int, string> */

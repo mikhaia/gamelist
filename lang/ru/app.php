@@ -16,7 +16,8 @@ return [
     ],
     'statuses' => [
         'want_to_play' => 'Хочу сыграть', 'installed' => 'Установлена', 'playing' => 'Играю',
-        'completed' => 'Пройдена', 'dropped' => 'Брошена',
+        'completed' => 'Пройдена', 'want_to_replay' => 'Хочу перепройти', 'replaying' => 'Перепрохожу',
+        'completed_100' => 'Пройдена на 100%', 'dropped' => 'Брошена',
     ],
     'platforms' => [
         'nintendo_switch' => 'Nintendo Switch', 'steam' => 'Steam', 'pc' => 'PC',
@@ -24,7 +25,8 @@ return [
     ],
     'profile_statuses' => [
         'want_to_play' => 'Хочу сыграть', 'installed' => 'Установлено', 'playing' => 'Играю',
-        'completed' => 'Пройдено', 'dropped' => 'Брошено',
+        'completed' => 'Пройдено', 'want_to_replay' => 'Хочу перепройти', 'replaying' => 'Перепрохожу',
+        'completed_100' => 'Пройдено на 100%', 'dropped' => 'Брошено',
     ],
     'activity' => [
         'online' => 'Онлайн',

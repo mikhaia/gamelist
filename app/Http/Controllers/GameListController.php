@@ -129,7 +129,7 @@ class GameListController extends Controller
             'description' => ['nullable', 'string', 'max:2000'],
             'cover' => ['nullable', 'image', 'max:8192'],
             'default_platform' => ['required', Rule::enum(Platform::class)],
-            'available_statuses' => ['required', 'array', 'min:1', 'max:5'],
+            'available_statuses' => ['required', 'array', 'min:1', 'max:'.count(GameStatus::cases())],
             'available_statuses.*' => ['required', 'distinct', Rule::enum(GameStatus::class)],
             'is_public' => ['nullable', 'boolean'],
         ]);

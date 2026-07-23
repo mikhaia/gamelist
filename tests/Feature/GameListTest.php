@@ -176,6 +176,47 @@ class GameListTest extends TestCase
             ->assertDontSee('Incomplete Game');
     }
 
+    public function test_owner_can_delete_list_from_edit_page(): void
+    {
+        Storage::fake('public');
+        $owner = User::factory()->create(['login' => 'list_owner']);
+        $other = User::factory()->create(['login' => 'other_player']);
+        $list = $owner->gameLists()->create([
+            'name' => 'Disposable',
+            'slug' => 'disposable',
+            'default_platform' => 'pc',
+            'cover_path' => 'list-covers/disposable.webp',
+        ]);
+        $game = $list->games()->create([
+            'title' => 'Temporary Game',
+            'normalized_title' => 'temporary game',
+            'status' => 'playing',
+            'platform' => 'pc',
+            'cover_path' => 'game-covers/temporary.webp',
+        ]);
+        Storage::disk('public')->put($list->cover_path, 'list cover');
+        Storage::disk('public')->put($game->cover_path, 'game cover');
+
+        $this->actingAs($owner)->get(route('lists.edit', $list))
+            ->assertOk()
+            ->assertSee('form="delete-list"', false)
+            ->assertSee('action="'.route('lists.destroy', $list).'"', false)
+            ->assertSee('Удалить список')
+            ->assertSee('data-confirm=', false);
+
+        $this->actingAs($other)->delete(route('lists.destroy', $list))->assertForbidden();
+        $this->assertDatabaseHas('game_lists', ['id' => $list->id]);
+
+        $this->actingAs($owner)->delete(route('lists.destroy', $list))
+            ->assertRedirect(route('lists.index'))
+            ->assertSessionHas('success', __('app.messages.list_deleted'));
+
+        $this->assertDatabaseMissing('game_lists', ['id' => $list->id]);
+        $this->assertDatabaseMissing('games', ['id' => $game->id]);
+        Storage::disk('public')->assertMissing($list->cover_path);
+        Storage::disk('public')->assertMissing($game->cover_path);
+    }
+
     public function test_list_cover_is_optimized_and_replaced(): void
     {
         Storage::fake('public');

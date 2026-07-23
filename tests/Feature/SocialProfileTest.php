@@ -107,6 +107,51 @@ class SocialProfileTest extends TestCase
         $this->assertSame(3, substr_count($response->getContent(), 'data-profile-status-column='));
     }
 
+    public function test_profile_groups_replay_statuses_into_the_three_summary_columns(): void
+    {
+        $profile = User::factory()->create(['login' => 'replayer']);
+        $list = $profile->gameLists()->create([
+            'name' => 'Replay Games',
+            'slug' => 'replay-games',
+            'default_platform' => 'pc',
+            'is_public' => true,
+        ]);
+        $list->games()->create([
+            'title' => 'Replay Later',
+            'normalized_title' => 'replay later',
+            'status' => 'want_to_replay',
+            'platform' => 'pc',
+        ]);
+        $list->games()->create([
+            'title' => 'Replay Now',
+            'normalized_title' => 'replay now',
+            'status' => 'replaying',
+            'platform' => 'pc',
+            'started_at' => '2026-07-20',
+        ]);
+        $list->games()->create([
+            'title' => 'Perfect Run',
+            'normalized_title' => 'perfect run',
+            'status' => 'completed_100',
+            'platform' => 'pc',
+            'completed_at' => '2026-07-22',
+        ]);
+
+        $this->get(route('profiles.show', $profile->login))
+            ->assertOk()
+            ->assertSeeInOrder([
+                'data-profile-status-count="want_to_play"',
+                'data-count="1"',
+                'Replay Later',
+                'data-profile-status-count="playing"',
+                'data-count="1"',
+                'Replay Now',
+                'data-profile-status-count="completed"',
+                'data-count="1"',
+                'Perfect Run',
+            ], false);
+    }
+
     public function test_public_profile_shows_only_public_lists_and_public_game_statistics(): void
     {
         $profile = User::factory()->create(['login' => 'chrono', 'email' => 'chrono@example.com']);

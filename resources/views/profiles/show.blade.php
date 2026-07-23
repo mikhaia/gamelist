@@ -116,11 +116,11 @@
                     <h2 class="min-w-0 flex-1 text-base font-extrabold text-white">{{ $column['title'] }}</h2>
                     <span
                         class="inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-xl bg-[#12131c] px-2.5 text-base tabular-nums text-slate-300"
-                        title="Всего: {{ $stats['statuses'][$column['status']] }} {{ trans_choice('app.counts.games', $stats['statuses'][$column['status']]) }}"
-                        aria-label="{{ $column['title'] }}: {{ $stats['statuses'][$column['status']] }}"
+                        title="Всего: {{ $profileStatusCounts[$column['status']] }} {{ trans_choice('app.counts.games', $profileStatusCounts[$column['status']]) }}"
+                        aria-label="{{ $column['title'] }}: {{ $profileStatusCounts[$column['status']] }}"
                         data-profile-status-count="{{ $column['status'] }}"
-                        data-count="{{ $stats['statuses'][$column['status']] }}"
-                    >{{ $stats['statuses'][$column['status']] }}</span>
+                        data-count="{{ $profileStatusCounts[$column['status']] }}"
+                    >{{ $profileStatusCounts[$column['status']] }}</span>
                 </div>
 
                 <div class="p-2">

@@ -208,6 +208,9 @@
                         'installed' => ['dot' => 'bg-sky-400', 'icon' => 'bg-sky-500/10 text-sky-300'],
                         'playing' => ['dot' => 'bg-cyan-400', 'icon' => 'bg-cyan-500/10 text-cyan-300'],
                         'completed' => ['dot' => 'bg-emerald-400', 'icon' => 'bg-emerald-500/10 text-emerald-300'],
+                        'want_to_replay' => ['dot' => 'bg-fuchsia-400', 'icon' => 'bg-fuchsia-500/10 text-fuchsia-300'],
+                        'replaying' => ['dot' => 'bg-indigo-400', 'icon' => 'bg-indigo-500/10 text-indigo-300'],
+                        'completed_100' => ['dot' => 'bg-amber-300', 'icon' => 'bg-amber-500/10 text-amber-200'],
                         'dropped' => ['dot' => 'bg-rose-400', 'icon' => 'bg-rose-500/10 text-rose-300'],
                     ])
                     <section aria-labelledby="game-status-history-title" data-game-status-history>

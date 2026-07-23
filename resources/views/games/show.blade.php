@@ -78,7 +78,7 @@
             </div>
         @endif
 
-        <div class="mt-7 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+        <div class="mt-7 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
             @foreach (\App\Enums\GameStatus::cases() as $status)
                 @php
                     $count = $statusCounts[$status->value];

@@ -40,11 +40,11 @@ class Game extends Model
                 return;
             }
 
-            if ($game->status === GameStatus::Playing && $game->started_at === null) {
+            if ($game->status->isInProgress() && $game->started_at === null) {
                 $game->started_at = today();
             }
 
-            if ($game->status === GameStatus::Completed && $game->completed_at === null) {
+            if ($game->status->isCompleted() && $game->completed_at === null) {
                 $game->completed_at = today();
             }
         });

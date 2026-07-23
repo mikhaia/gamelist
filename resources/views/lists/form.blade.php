@@ -88,11 +88,19 @@
                 <input class="mt-1 size-4 accent-violet-500" type="checkbox" name="is_public" value="1" @checked(old('is_public', $gameList->exists ? $gameList->is_public : true))>
                 <span><strong class="block text-sm">Публичный список</strong><span class="mt-1 block text-xs leading-5 text-slate-500">Любой человек со ссылкой сможет посмотреть список, но не сможет его изменить.</span></span>
             </label>
-            <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-                <a class="button button-secondary" href="{{ $editing ? route('lists.show', $gameList) : route('lists.index') }}">{{ __('app.actions.cancel') }}</a>
-                <button class="button button-primary"><span class="material-symbols-outlined">save</span> {{ __('app.actions.save') }}</button>
+            <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+                @if ($editing)
+                    <button type="submit" form="delete-list" class="button button-danger" data-confirm="Удалить список вместе со всеми играми? Это действие нельзя отменить."><span class="material-symbols-outlined">delete</span> Удалить список</button>
+                @else<span></span>@endif
+                <div class="flex flex-col-reverse gap-3 sm:flex-row">
+                    <a class="button button-secondary" href="{{ $editing ? route('lists.show', $gameList) : route('lists.index') }}">{{ __('app.actions.cancel') }}</a>
+                    <button class="button button-primary"><span class="material-symbols-outlined">save</span> {{ __('app.actions.save') }}</button>
+                </div>
             </div>
         </form>
+        @if ($editing)
+            <form id="delete-list" method="POST" action="{{ route('lists.destroy', $gameList) }}">@csrf @method('DELETE')</form>
+        @endif
     </div>
 </div>
 @endsection

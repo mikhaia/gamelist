@@ -21,7 +21,7 @@ class InactiveReminderService
                 $query->whereNull('inactive_reminder_sent_at')
                     ->orWhereColumn('inactive_reminder_sent_at', '<', 'last_seen_at');
             })
-            ->with(['gameLists.games' => fn ($query) => $query->where('status', GameStatus::Playing->value)])
+            ->with(['gameLists.games' => fn ($query) => $query->whereIn('status', [GameStatus::Playing->value, GameStatus::Replaying->value])])
             ->chunkById(100, function ($users) use (&$sent): void {
                 foreach ($users as $user) {
                     $playingGames = $user->gameLists->flatMap->games;

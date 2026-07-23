@@ -51,13 +51,14 @@ class GameObserver
         $game->loadMissing('gameList.user');
         $owner = $game->gameList->user;
 
-        if ($game->status === GameStatus::Playing) {
+        if ($game->status->isInProgress()) {
+            $replaying = $game->status === GameStatus::Replaying;
             $this->notifications->notifyUser(
                 $owner,
                 'good_luck',
-                "Удачи в прохождении «{$game->title}»!",
+                $replaying ? "Удачи в перепрохождении «{$game->title}»!" : "Удачи в прохождении «{$game->title}»!",
                 route('games.view', $game, false),
-                'play_circle',
+                $replaying ? 'restart_alt' : 'play_circle',
                 ['game_id' => $game->id],
             );
 
@@ -65,21 +66,26 @@ class GameObserver
                 $this->notifications->notifyFollowers(
                     $owner,
                     'friend_started_game',
-                    "@{$owner->login} начал играть в «{$game->title}».",
+                    $replaying
+                        ? "@{$owner->login} перепроходит «{$game->title}»."
+                        : "@{$owner->login} начал играть в «{$game->title}».",
                     $this->publicListUrl($game),
-                    'play_circle',
+                    $replaying ? 'restart_alt' : 'play_circle',
                     ['game_id' => $game->id],
                 );
             }
         }
 
-        if ($game->status === GameStatus::Completed) {
+        if ($game->status->isCompleted()) {
+            $completed100 = $game->status === GameStatus::Completed100;
             $this->notifications->notifyUser(
                 $owner,
                 'congratulations',
-                "Поздравляем с прохождением «{$game->title}»!",
+                $completed100
+                    ? "Поздравляем со 100% прохождением «{$game->title}»!"
+                    : "Поздравляем с прохождением «{$game->title}»!",
                 route('games.view', $game, false),
-                'trophy',
+                $completed100 ? 'workspace_premium' : 'trophy',
                 ['game_id' => $game->id],
             );
 
@@ -87,9 +93,11 @@ class GameObserver
                 $this->notifications->notifyFollowers(
                     $owner,
                     'friend_completed_game',
-                    "@{$owner->login} прошёл игру «{$game->title}».",
+                    $completed100
+                        ? "@{$owner->login} прошёл «{$game->title}» на 100%."
+                        : "@{$owner->login} прошёл игру «{$game->title}».",
                     $this->publicListUrl($game),
-                    'trophy',
+                    $completed100 ? 'workspace_premium' : 'trophy',
                     ['game_id' => $game->id],
                 );
             }

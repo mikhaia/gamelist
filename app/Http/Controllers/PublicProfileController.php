@@ -35,20 +35,20 @@ class PublicProfileController extends Controller
                 ->where('is_public', true));
         $recentGamesByStatus = [
             GameStatus::WantToPlay->value => (clone $publicGames)
-                ->where('status', GameStatus::WantToPlay->value)
+                ->whereIn('status', [GameStatus::WantToPlay->value, GameStatus::WantToReplay->value])
                 ->latest('created_at')
                 ->latest('id')
                 ->limit(3)
                 ->get(),
             GameStatus::Playing->value => (clone $publicGames)
-                ->where('status', GameStatus::Playing->value)
+                ->whereIn('status', [GameStatus::Playing->value, GameStatus::Replaying->value])
                 ->whereNotNull('started_at')
                 ->orderByDesc('started_at')
                 ->latest('id')
                 ->limit(3)
                 ->get(),
             GameStatus::Completed->value => (clone $publicGames)
-                ->where('status', GameStatus::Completed->value)
+                ->whereIn('status', [GameStatus::Completed->value, GameStatus::Completed100->value])
                 ->whereNotNull('completed_at')
                 ->orderByDesc('completed_at')
                 ->latest('id')
@@ -63,13 +63,21 @@ class PublicProfileController extends Controller
                 ->get()
             : collect();
 
+        $stats = $this->profileStats->forUser($profile);
+        $profileStatusCounts = [
+            GameStatus::WantToPlay->value => $stats['statuses'][GameStatus::WantToPlay->value] + $stats['statuses'][GameStatus::WantToReplay->value],
+            GameStatus::Playing->value => $stats['statuses'][GameStatus::Playing->value] + $stats['statuses'][GameStatus::Replaying->value],
+            GameStatus::Completed->value => $stats['statuses'][GameStatus::Completed->value] + $stats['statuses'][GameStatus::Completed100->value],
+        ];
+
         return view('profiles.show', [
             'profile' => $profile,
             'publicLists' => $publicLists,
             'favoriteGames' => $favoriteGames,
             'recentGamesByStatus' => $recentGamesByStatus,
             'availableGames' => $availableGames,
-            'stats' => $this->profileStats->forUser($profile),
+            'stats' => $stats,
+            'profileStatusCounts' => $profileStatusCounts,
             'isOwner' => $isOwner,
             'isFriend' => $request->user()?->isFriendsWith($profile) ?? false,
         ]);
