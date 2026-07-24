@@ -7,14 +7,14 @@
     <meta name="theme-color" content="#eef2ff">
     <title>@yield('title', 'Статистика') · GameList Admin</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260723-2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260724-2" as="font" type="font/woff2" crossorigin>
     <style>
         @font-face {
             font-family: 'Material Symbols Outlined';
             font-style: normal;
             font-weight: 400;
             font-display: block;
-            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260723-2') format('woff2');
+            src: url('{{ asset('fonts/material-symbols-outlined.woff2') }}?v=20260724-2') format('woff2');
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">

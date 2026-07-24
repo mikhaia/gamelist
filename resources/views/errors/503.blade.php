@@ -44,7 +44,7 @@
     <title>Скоро вернёмся · GameList</title>
     <meta name="description" content="GameList обновляется и скоро вернётся.">
     <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="preload" href="/fonts/material-symbols-outlined.woff2?v=20260723-2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/material-symbols-outlined.woff2?v=20260724-2" as="font" type="font/woff2" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -54,7 +54,7 @@
             font-style: normal;
             font-weight: 400;
             font-display: block;
-            src: url('/fonts/material-symbols-outlined.woff2?v=20260723-2') format('woff2');
+            src: url('/fonts/material-symbols-outlined.woff2?v=20260724-2') format('woff2');
         }
 
         :root { color-scheme: dark; }
@@ -106,6 +106,7 @@
             line-height: 1;
             letter-spacing: normal;
             text-align: center;
+            text-transform: none;
             white-space: nowrap;
             vertical-align: middle;
         }

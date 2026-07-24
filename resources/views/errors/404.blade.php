@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#070913">
-    <title>Ошибка сервера · GameList</title>
-    <meta name="description" content="GameList столкнулся с временной ошибкой. Попробуйте обновить страницу.">
+    <title>Страница не найдена · GameList</title>
+    <meta name="description" content="Такой страницы в GameList нет. Вернитесь на главную или найдите игру в каталоге.">
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="preload" href="/fonts/material-symbols-outlined.woff2?v=20260724-2" as="font" type="font/woff2" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -142,10 +142,10 @@
             gap: 8px;
             margin-bottom: 19px;
             padding: 7px 12px;
-            border: 1px solid rgba(251, 191, 36, .2);
+            border: 1px solid rgba(103, 232, 249, .2);
             border-radius: 999px;
-            color: #fde68a;
-            background: rgba(245, 158, 11, .08);
+            color: #a5f3fc;
+            background: rgba(8, 145, 178, .08);
             font-size: 11px;
             font-weight: 800;
             letter-spacing: .15em;
@@ -240,13 +240,11 @@
         }
         .visual::before {
             position: absolute;
-            top: -30%;
-            left: 0;
-            width: 100%;
-            height: 28%;
-            background: linear-gradient(to bottom, transparent, rgba(103, 232, 249, .06), transparent);
+            inset: 16% 8%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(103, 232, 249, .07), transparent 62%);
             content: '';
-            animation: scan 5s linear infinite;
+            animation: pulse 4s ease-in-out infinite;
         }
         .error-code {
             position: absolute;
@@ -265,59 +263,87 @@
             content: attr(data-text);
         }
         .error-code::before {
-            color: rgba(167, 139, 250, .12);
+            color: rgba(167, 139, 250, .1);
             transform: translateX(3px);
             clip-path: inset(18% 0 58% 0);
-            animation: glitch 4.2s steps(1) infinite;
+            animation: glitch 5.4s steps(1) infinite;
         }
         .error-code::after {
-            color: rgba(103, 232, 249, .1);
+            color: rgba(103, 232, 249, .11);
             transform: translateX(-3px);
             clip-path: inset(65% 0 12% 0);
-            animation: glitch 4.2s steps(1) .16s infinite reverse;
+            animation: glitch 5.4s steps(1) .16s infinite reverse;
         }
-        .orbit {
+        .radar-ring {
             position: absolute;
-            width: 250px;
-            height: 250px;
-            border: 1px solid rgba(167, 139, 250, .16);
+            width: 220px;
+            height: 220px;
+            border: 1px dashed rgba(167, 139, 250, .17);
             border-radius: 999px;
-            animation: orbit 13s linear infinite;
+            animation: orbit 18s linear infinite;
         }
-        .orbit::after {
+        .radar-ring::before,
+        .radar-ring::after {
             position: absolute;
-            top: 20px;
-            left: 42px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #a78bfa;
-            box-shadow: 0 0 18px rgba(167, 139, 250, .8);
+            border-radius: 999px;
             content: '';
         }
-        .orbit-two {
-            width: 310px;
-            height: 310px;
-            border-color: rgba(34, 211, 238, .09);
-            animation-duration: 19s;
+        .radar-ring::before { inset: 36px; border: 1px solid rgba(34, 211, 238, .1); }
+        .radar-ring::after {
+            top: 13px;
+            left: 53px;
+            width: 8px;
+            height: 8px;
+            background: #67e8f9;
+            box-shadow: 0 0 20px rgba(103, 232, 249, .75);
+        }
+        .radar-ring-two {
+            width: 300px;
+            height: 300px;
+            border-style: solid;
+            border-color: rgba(34, 211, 238, .08);
+            animation-duration: 25s;
             animation-direction: reverse;
         }
-        .orbit-two::after { top: auto; bottom: 42px; left: auto; right: 34px; background: #22d3ee; box-shadow: 0 0 18px rgba(34, 211, 238, .7); }
+        .radar-ring-two::before { inset: 68px; border-color: rgba(167, 139, 250, .1); }
+        .radar-ring-two::after { top: auto; right: 35px; bottom: 58px; left: auto; background: #a78bfa; box-shadow: 0 0 20px rgba(167, 139, 250, .7); }
+        .route-line {
+            position: absolute;
+            width: 124px;
+            height: 1px;
+            opacity: .55;
+            background: repeating-linear-gradient(90deg, rgba(103, 232, 249, .38) 0 7px, transparent 7px 13px);
+            transform-origin: left center;
+        }
+        .route-one { margin: -76px 0 0 -186px; transform: rotate(28deg); }
+        .route-two { margin: 95px 0 0 45px; transform: rotate(-31deg); }
+        .route-node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 2px solid #070913;
+            border-radius: 50%;
+            background: #67e8f9;
+            box-shadow: 0 0 0 5px rgba(34, 211, 238, .08), 0 0 18px rgba(34, 211, 238, .6);
+            animation: blink 2.4s ease-in-out infinite;
+        }
+        .node-one { margin: -136px 0 0 -296px; }
+        .node-two { margin: 156px 0 0 278px; animation-delay: .7s; }
         .core {
             position: relative;
             display: grid;
             width: 118px;
             height: 118px;
             place-items: center;
-            border: 1px solid rgba(167, 139, 250, .28);
+            border: 1px solid rgba(103, 232, 249, .25);
             border-radius: 36px;
-            color: #ddd6fe;
-            background: linear-gradient(145deg, rgba(139, 92, 246, .28), rgba(8, 145, 178, .12));
-            box-shadow: 0 28px 80px rgba(76, 29, 149, .32), inset 0 1px rgba(255, 255, 255, .08);
+            color: #cffafe;
+            background: linear-gradient(145deg, rgba(8, 145, 178, .24), rgba(124, 58, 237, .16));
+            box-shadow: 0 28px 80px rgba(8, 145, 178, .16), inset 0 1px rgba(255, 255, 255, .08);
             animation: float 3.6s ease-in-out infinite;
         }
         .core > .material-symbols-outlined { font-size: 53px; }
-        .warning {
+        .missing {
             position: absolute;
             top: -9px;
             right: -9px;
@@ -327,11 +353,11 @@
             place-items: center;
             border: 5px solid #10111d;
             border-radius: 50%;
-            color: #fde68a;
-            background: #d97706;
-            box-shadow: 0 8px 20px rgba(120, 53, 15, .45);
+            color: #ede9fe;
+            background: #7c3aed;
+            box-shadow: 0 8px 20px rgba(76, 29, 149, .42);
         }
-        .warning .material-symbols-outlined { font-size: 16px; }
+        .missing .material-symbols-outlined { font-size: 16px; }
         .signal {
             position: absolute;
             bottom: 26px;
@@ -356,21 +382,21 @@
             width: 7px;
             height: 7px;
             border-radius: 50%;
-            background: #f59e0b;
-            box-shadow: 0 0 0 5px rgba(245, 158, 11, .08);
+            background: #22d3ee;
+            box-shadow: 0 0 0 5px rgba(34, 211, 238, .08);
             animation: blink 1.6s ease-in-out infinite;
         }
         .footnote { margin: 18px 0 0; color: #475569; font-size: 10px; text-align: center; }
 
-        @keyframes scan { to { transform: translateY(560%); } }
         @keyframes orbit { to { transform: rotate(360deg); } }
-        @keyframes float { 50% { transform: translateY(-10px) rotate(2deg); } }
+        @keyframes float { 50% { transform: translateY(-10px) rotate(-2deg); } }
+        @keyframes pulse { 50% { opacity: .45; transform: scale(1.08); } }
         @keyframes blink { 50% { opacity: .38; } }
         @keyframes glitch {
-            0%, 88%, 100% { transform: translateX(0); }
-            89% { transform: translateX(7px); }
-            91% { transform: translateX(-5px); }
-            93% { transform: translateX(2px); }
+            0%, 91%, 100% { transform: translateX(0); }
+            92% { transform: translateX(6px); }
+            94% { transform: translateX(-4px); }
+            96% { transform: translateX(2px); }
         }
         @media (min-width: 900px) {
             .panel { grid-template-columns: minmax(0, 1.25fr) minmax(330px, .75fr); }
@@ -385,10 +411,14 @@
             .actions { flex-direction: column; }
             .button { width: 100%; }
             .visual { min-height: 280px; }
-            .orbit { width: 210px; height: 210px; }
-            .orbit-two { width: 255px; height: 255px; }
+            .radar-ring { width: 190px; height: 190px; }
+            .radar-ring-two { width: 245px; height: 245px; }
             .core { width: 100px; height: 100px; border-radius: 30px; }
             .core > .material-symbols-outlined { font-size: 45px; }
+            .route-one { margin-left: -150px; }
+            .route-two { margin-left: 28px; }
+            .node-one { margin-left: -248px; }
+            .node-two { margin-left: 230px; }
         }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
@@ -407,37 +437,41 @@
 
         <section class="panel" aria-labelledby="error-title">
             <div class="copy">
-                <span class="eyebrow"><span class="material-symbols-outlined">warning</span> Ошибка сервера · 500</span>
-                <h1 id="error-title">Сервер пропустил ход.<br><span>Попробуем ещё раз?</span></h1>
-                <p class="lead">Что-то пошло не по плану, но проблема уже записана в журнал. Обновите страницу — чаще всего следующая попытка проходит успешно.</p>
+                <span class="eyebrow"><span class="material-symbols-outlined">search_off</span> Маршрут не найден · 404</span>
+                <h1 id="error-title">Эта страница вышла из игры.<br><span>Найдём другой путь?</span></h1>
+                <p class="lead">Возможно, ссылка устарела или в адресе есть ошибка. Вернитесь на главную либо загляните в каталог — там точно найдётся что-нибудь интересное.</p>
 
                 <div class="actions">
-                    <a href="" class="button button-primary"><span class="material-symbols-outlined">refresh</span> Попробовать снова</a>
-                    <a href="{{ url('/') }}" class="button"><span class="material-symbols-outlined">home</span> На главную</a>
+                    <a href="{{ url('/') }}" class="button button-primary"><span class="material-symbols-outlined">home</span> На главную</a>
+                    <a href="{{ url('/search') }}" class="button"><span class="material-symbols-outlined">search</span> Найти игру</a>
                 </div>
 
                 <div class="status-card">
-                    <span class="status-icon"><span class="material-symbols-outlined">support_agent</span></span>
+                    <span class="status-icon"><span class="material-symbols-outlined">travel_explore</span></span>
                     <span class="status-copy">
-                        <strong>Ошибка повторяется?</strong>
-                        <span>Подождите минуту и обновите страницу. Технические подробности намеренно скрыты.</span>
+                        <strong>Пришли по старой ссылке?</strong>
+                        <span>Проверьте адрес или начните новый маршрут с главной страницы GameList.</span>
                     </span>
                 </div>
             </div>
 
             <div class="visual" aria-hidden="true">
-                <span class="error-code" data-text="500">500</span>
-                <span class="orbit"></span>
-                <span class="orbit orbit-two"></span>
+                <span class="error-code" data-text="404">404</span>
+                <span class="route-line route-one"></span>
+                <span class="route-line route-two"></span>
+                <span class="route-node node-one"></span>
+                <span class="route-node node-two"></span>
+                <span class="radar-ring"></span>
+                <span class="radar-ring radar-ring-two"></span>
                 <span class="core">
-                    <span class="material-symbols-outlined">sports_esports</span>
-                    <span class="warning"><span class="material-symbols-outlined">priority_high</span></span>
+                    <span class="material-symbols-outlined">travel_explore</span>
+                    <span class="missing"><span class="material-symbols-outlined">search_off</span></span>
                 </span>
-                <span class="signal"><span class="signal-dot"></span> Переподключаемся</span>
+                <span class="signal"><span class="signal-dot"></span> Ищем новый маршрут</span>
             </div>
         </section>
 
-        <p class="footnote">Код 500 · Внутренняя ошибка сервера</p>
+        <p class="footnote">Код 404 · Страница не найдена</p>
     </main>
 </body>
 </html>
